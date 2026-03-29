@@ -1,0 +1,113 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\Pandtheon - Idle RPG\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|d:\\projects\\pandtheon - idle rpg\\assets\\scripts\\player\\playernavigator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\player\\playernavigator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|D:\\Projects\\Pandtheon - Idle RPG\\assets\\scripts\\platform\\ladderclicktarget.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\platform\\ladderclicktarget.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|D:\\Projects\\Pandtheon - Idle RPG\\assets\\scripts\\platform\\ladderlink.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\platform\\ladderlink.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|D:\\Projects\\Pandtheon - Idle RPG\\assets\\scripts\\platform\\platformnode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\platform\\platformnode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|D:\\Projects\\Pandtheon - Idle RPG\\assets\\scripts\\platform\\playerplatformsensor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DDFD17E-7784-54DD-BF21-DA1A7DF07A34}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\platform\\playerplatformsensor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PlatformNode.cs",
+              "DocumentMoniker": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\PlatformNode.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Platform\\PlatformNode.cs",
+              "ToolTip": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\PlatformNode.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Platform\\PlatformNode.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T13:05:16.235Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LadderLink.cs",
+              "DocumentMoniker": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\LadderLink.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Platform\\LadderLink.cs",
+              "ToolTip": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\LadderLink.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Platform\\LadderLink.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T13:05:18.471Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "LadderClickTarget.cs",
+              "DocumentMoniker": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\LadderClickTarget.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Platform\\LadderClickTarget.cs",
+              "ToolTip": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\LadderClickTarget.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Platform\\LadderClickTarget.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T13:05:13.016Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PlayerNavigator.cs",
+              "DocumentMoniker": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Player\\PlayerNavigator.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Player\\PlayerNavigator.cs",
+              "ToolTip": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Player\\PlayerNavigator.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Player\\PlayerNavigator.cs",
+              "ViewState": "AgIAAE8CAAAAAAAAAAAiwGQCAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-20T13:52:29.146Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PlayerPlatformSensor.cs",
+              "DocumentMoniker": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\PlayerPlatformSensor.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Platform\\PlayerPlatformSensor.cs",
+              "ToolTip": "D:\\Projects\\Pandtheon - Idle RPG\\Assets\\Scripts\\Platform\\PlayerPlatformSensor.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Platform\\PlayerPlatformSensor.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD0AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-20T13:45:42.833Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
