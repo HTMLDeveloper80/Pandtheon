@@ -1,18 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerNavigator : MonoBehaviour
 {
     [Header("Refs")]
     public PlayerMovement movement;
     public PlayerPlatformSensor platformSensor;
-
-    [Header("Click detect")]
-    public LayerMask platformMask;
-    public LayerMask ladderMask;
-    public float clickRadius = 0.05f;
 
     [Header("Move / arrive")]
     public float arriveX = 0.12f;
@@ -40,58 +34,14 @@ public class PlayerNavigator : MonoBehaviour
         platformSensor = GetComponentInChildren<PlayerPlatformSensor>();
     }
 
-    private void Update()
-    {
-        if (movement == null || platformSensor == null) return;
-        if (isBusy && lockInputDuringSequence) return;
+    public bool IsBusy => isBusy;
 
-        if (!Input.GetMouseButtonDown(0))
-            return;
-
-        if (IsPointerOverUI())
-            return;
-
-        Vector3 tapWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        tapWorld.z = 0f;
-
-        // 1) najpierw klik w drabinę
-        Collider2D ladderHit = Physics2D.OverlapPoint(tapWorld, ladderMask);
-        if (ladderHit == null)
-            ladderHit = Physics2D.OverlapCircle(tapWorld, clickRadius, ladderMask);
-
-        if (ladderHit != null)
-        {
-            LadderClickTarget ladder =
-                ladderHit.GetComponentInParent<LadderClickTarget>() ??
-                ladderHit.GetComponent<LadderClickTarget>();
-
-            if (ladder != null)
-            {
-                HandleLadderClick(ladder);
-                return;
-            }
-        }
-
-        // 2) jak nie drabina, to normalna platforma
-        Collider2D hit = Physics2D.OverlapPoint(tapWorld, platformMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(tapWorld, clickRadius, platformMask);
-
-        if (hit == null) return;
-
-        PlatformNode targetPlatform =
-            hit.GetComponentInParent<PlatformNode>() ?? hit.GetComponent<PlatformNode>();
-
-        if (targetPlatform == null) return;
-
-        float clickedX = Mathf.Clamp(tapWorld.x, hit.bounds.min.x, hit.bounds.max.x);
-        clickedX = ClampXByObstacles(clickedX);
-
-        NavigateToPlatform(targetPlatform, clickedX);
-    }
-
+    // Wywoływane z PlayerClickController
     public void NavigateToPlatform(PlatformNode targetPlatform, float targetX)
     {
+        if (movement == null || platformSensor == null || targetPlatform == null) return;
+        if (isBusy && lockInputDuringSequence) return;
+
         PlatformNode currentPlatform = platformSensor.CurrentPlatform;
         if (currentPlatform == null)
         {
@@ -108,7 +58,7 @@ public class PlayerNavigator : MonoBehaviour
             return;
         }
 
-        // znajdź ścieżkę przez wiele platform
+        // ścieżka
         List<PlatformNode.JumpLink> path = FindPath(currentPlatform, targetPlatform);
         if (path == null || path.Count == 0)
         {
@@ -120,8 +70,12 @@ public class PlayerNavigator : MonoBehaviour
         StartCoroutine(FollowPath(path, targetX));
     }
 
-    private void HandleLadderClick(LadderClickTarget ladder)
+    // Wywoływane z PlayerClickController
+    public void NavigateViaLadder(LadderClickTarget ladder)
     {
+        if (ladder == null || movement == null || platformSensor == null) return;
+        if (isBusy && lockInputDuringSequence) return;
+
         PlatformNode currentPlatform = platformSensor.CurrentPlatform;
         if (currentPlatform == null)
         {
@@ -164,16 +118,11 @@ public class PlayerNavigator : MonoBehaviour
 
             foreach (var link in current.jumpLinks)
             {
-                if (link == null)
-                    continue;
-
-                if (link.toPlatform == null || link.jumpStart == null || link.jumpLand == null)
-                    continue;
+                if (link == null) continue;
+                if (link.toPlatform == null || link.jumpStart == null || link.jumpLand == null) continue;
 
                 PlatformNode next = link.toPlatform;
-
-                if (visited.Contains(next))
-                    continue;
+                if (visited.Contains(next)) continue;
 
                 visited.Add(next);
                 queue.Enqueue(next);
@@ -212,7 +161,6 @@ public class PlayerNavigator : MonoBehaviour
             {
                 bool isLast = (i == path.Count - 1);
                 float xAfterThisLink = isLast ? finalTargetX : path[i].jumpLand.position.x;
-
                 yield return StartCoroutine(JumpSequence(path[i], xAfterThisLink));
             }
         }
@@ -421,7 +369,7 @@ public class PlayerNavigator : MonoBehaviour
             rb.position = new Vector2(link.dropExitPoint.position.x, rb.position.y);
         }
 
-        // 2) spadanie tylko z fizyki
+        // 2) spadanie tylko z fizyki (to jest klucz)
         PlatformNode startPlatform = platformSensor.CurrentPlatform;
 
         rb.linearVelocity = Vector2.zero;
@@ -459,20 +407,6 @@ public class PlayerNavigator : MonoBehaviour
         Vector3 final = new Vector3(finalX, rb.position.y, 0f);
         movement.MoveTo(final);
         movement.SetMarkerAt(final);
-    }
-
-    private bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null) return false;
-
-        PointerEventData eventData = new PointerEventData(EventSystem.current)
-        {
-            position = Input.mousePosition
-        };
-
-        List<RaycastResult> results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
-        return results.Count > 0;
     }
 
     private float ClampXByObstacles(float desiredX)

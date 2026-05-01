@@ -1,93 +1,75 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerCombat : MonoBehaviour
 {
-    public float attackRange = 1.5f;
-    public float attackRate = 1.0f;
+    [Header("Combat")]
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float attackRate = 1.0f; // ataki / sekunda
 
     private float nextAttackTime = 0f;
 
     private PlayerMovement movement;
     private PlayerStats stats;
+
     private Transform currentTarget;
     private EnemyHealth targetEnemy;
 
-    private bool isAttacking = false;   // 🔥 blokuje ruch w czasie cooldownu
     private bool autoAttackActive = false;
+    private bool isAttackCooldown = false;
 
-    void Start()
+    private void Start()
     {
         movement = GetComponent<PlayerMovement>();
         stats = GetComponent<PlayerStats>();
     }
 
-    void Update()
+    private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (!autoAttackActive) return;
+        if (targetEnemy == null || targetEnemy.IsDead)
         {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-                return;
-
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
-
-            if (hit.collider != null)
-            {
-                EnemyHealth foundEnemy = hit.collider.GetComponent<EnemyHealth>() ??
-                                         hit.collider.GetComponentInParent<EnemyHealth>() ??
-                                         hit.collider.GetComponentInChildren<EnemyHealth>();
-
-                if (foundEnemy != null)
-                {
-                    currentTarget = foundEnemy.transform;
-                    targetEnemy = foundEnemy;
-
-                    autoAttackActive = true;
-                    isAttacking = false;
-
-                    movement.SetMarkerAt(currentTarget.position);
-                    TryApproachOrAttack();
-                }
-                else
-                {
-                    autoAttackActive = false;
-                    currentTarget = null;
-                    targetEnemy = null;
-                }
-            }
-            else
-            {
-                autoAttackActive = false;
-                currentTarget = null;
-                targetEnemy = null;
-            }
-        }
-
-        // 🔥 Gracz stoi i czeka cooldown → zero logiki ruchu
-        if (isAttacking)
+            ClearTarget();
             return;
+        }
 
-        if (autoAttackActive && targetEnemy != null && !targetEnemy.IsDead)
+        if (isAttackCooldown) return;
+
+        TryApproachOrAttack();
+    }
+
+    /// <summary>
+    /// Wywołuj z zewnętrznego click-routera po kliknięciu enemy.
+    /// </summary>
+    public void SetTarget(EnemyHealth enemy)
+    {
+        if (enemy == null || enemy.IsDead)
         {
-            TryApproachOrAttack();
+            ClearTarget();
+            return;
         }
-        else
-        {
-            autoAttackActive = false;
-            currentTarget = null;
-            targetEnemy = null;
-        }
+
+        currentTarget = enemy.transform;
+        targetEnemy = enemy;
+        autoAttackActive = true;
+        isAttackCooldown = false;
+
+        if (movement != null)
+            movement.SetMarkerAt(currentTarget.position);
+
+        TryApproachOrAttack();
+    }
+
+    public void CancelCombat()
+    {
+        ClearTarget();
     }
 
     private void TryApproachOrAttack()
     {
-        if (currentTarget == null || targetEnemy == null)
-            return;
+        if (movement == null || stats == null || currentTarget == null || targetEnemy == null) return;
 
         float dist = Vector2.Distance(movement.CurrentPosition(), currentTarget.position);
-
-        float finalAttackRate = attackRate + stats.attributes.GetAttackSpeed();
+        float finalAttackRate = Mathf.Max(0.01f, attackRate + stats.attributes.GetAttackSpeed());
 
         if (dist <= attackRange)
         {
@@ -95,19 +77,15 @@ public class PlayerCombat : MonoBehaviour
 
             if (Time.time >= nextAttackTime)
             {
-                Attack();
+                PerformAttack();
                 nextAttackTime = Time.time + (1f / finalAttackRate);
-            }
-            else
-            {
-                // 🔥 Cały cooldown postać stoi
-                isAttacking = true;
-                Invoke(nameof(ResetAttackState), nextAttackTime - Time.time);
+
+                isAttackCooldown = true;
+                Invoke(nameof(ResetAttackCooldown), 1f / finalAttackRate);
             }
         }
         else
         {
-            // 🔥 Ruch tylko jeśli NIE jesteśmy w cooldownie
             Vector3 direction = (currentTarget.position - (Vector3)movement.CurrentPosition()).normalized;
             Vector3 desiredPos = currentTarget.position - direction * attackRange * 0.9f;
             movement.MoveTo(desiredPos);
@@ -117,36 +95,34 @@ public class PlayerCombat : MonoBehaviour
             movement.UpdateMarkerPosition(currentTarget.position);
     }
 
-    private void Attack()
+    private void PerformAttack()
     {
-        if (targetEnemy == null || targetEnemy.IsDead)
-            return;
+        if (targetEnemy == null || targetEnemy.IsDead || stats == null) return;
 
         int damage = stats.TotalDamage;
         bool isCrit = Random.value < (stats.CritChance / 100f);
 
         if (isCrit)
-        {
-            float critMulti = stats.CritDamageMultiplier;
-            damage = Mathf.RoundToInt(damage * critMulti);
-            Debug.Log($"Critical Hit! {damage} dmg!");
-        }
-        else
-        {
-            Debug.Log($"Hit for {damage} dmg");
-        }
+            damage = Mathf.RoundToInt(damage * stats.CritDamageMultiplier);
 
-        targetEnemy.TakeDamage(stats.TotalDamage);
-
-        // 🔥 zablokuj ruch do końca cooldownu
-        isAttacking = true;
-
-        float finalAttackRate = attackRange + stats.attributes.GetAttackSpeed();
-        Invoke(nameof(ResetAttackState), 1f / finalAttackRate);
+        targetEnemy.TakeDamage(damage);
     }
 
-    private void ResetAttackState()
+    private void ResetAttackCooldown()
     {
-        isAttacking = false;
+        isAttackCooldown = false;
+    }
+
+    private void ClearTarget()
+    {
+        autoAttackActive = false;
+        currentTarget = null;
+        targetEnemy = null;
+        isAttackCooldown = false;
+
+        CancelInvoke(nameof(ResetAttackCooldown));
+
+        if (movement != null)
+            movement.ClearMarker();
     }
 }

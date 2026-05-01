@@ -51,6 +51,12 @@ public class EnemyHealth : MonoBehaviour
 
         isDead = true;
 
+        if (QuestManager.Instance != null && stats != null && stats.data != null)
+        {
+            // u¿ywamy enemyType jako identyfikatora celu questa
+            QuestManager.Instance.AddKill(stats.data.enemyType.ToString());
+        }
+
         if (loot != null)
             loot.DropLoot();
 

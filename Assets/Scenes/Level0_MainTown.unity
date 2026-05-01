@@ -6912,7 +6912,7 @@ GameObject:
   - component: {fileID: 593048012}
   - component: {fileID: 593048011}
   - component: {fileID: 593048014}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: NPC1
   m_TagString: NPC
   m_Icon: {fileID: 0}
@@ -7828,7 +7828,7 @@ GameObject:
   - component: {fileID: 649660206}
   - component: {fileID: 649660205}
   - component: {fileID: 649660204}
-  m_Layer: 5
+  m_Layer: 9
   m_Name: DialogText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13034,7 +13034,7 @@ GameObject:
   - component: {fileID: 1160352049}
   - component: {fileID: 1160352051}
   - component: {fileID: 1160352050}
-  m_Layer: 5
+  m_Layer: 9
   m_Name: DialogBubble
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15834,7 +15834,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1375140333}
   - component: {fileID: 1375140334}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22339,7 +22339,7 @@ GameObject:
   - component: {fileID: 1958594241}
   - component: {fileID: 1958594240}
   - component: {fileID: 1958594239}
-  m_Layer: 5
+  m_Layer: 9
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -23799,8 +23799,8 @@ GameObject:
   - component: {fileID: 2085893450}
   - component: {fileID: 2085893449}
   - component: {fileID: 2085893448}
-  - component: {fileID: 2085893447}
   - component: {fileID: 2085893456}
+  - component: {fileID: 2085893457}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -23808,18 +23808,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2085893447
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2085893446}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38c70ab263a662349b235782feeb1889, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2085893448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24061,13 +24049,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movement: {fileID: 2085893451}
   platformSensor: {fileID: 1274023464}
-  platformMask:
-    serializedVersion: 2
-    m_Bits: 8
-  ladderMask:
-    serializedVersion: 2
-    m_Bits: 256
-  clickRadius: 0.05
   arriveX: 0.12
   jumpDuration: 0.6
   jumpHeight: 1.2
@@ -24078,6 +24059,38 @@ MonoBehaviour:
   obstaclePadding: 0.06
   dropDuration: 0.25
   ladderDuration: 0.6
+--- !u!114 &2085893457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085893446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39e22e976cfd91d4e9f0e372f8eeb742, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  navigator: {fileID: 2085893456}
+  combat: {fileID: 2085893449}
+  playerStats: {fileID: 2085893450}
+  playerWallet: {fileID: 2085893448}
+  npcMask:
+    serializedVersion: 2
+    m_Bits: 512
+  ladderMask:
+    serializedVersion: 2
+    m_Bits: 256
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 64
+  pickupMask:
+    serializedVersion: 2
+    m_Bits: 0
+  platformMask:
+    serializedVersion: 2
+    m_Bits: 8
+  clickRadius: 0.08
 --- !u!1 &2095819662
 GameObject:
   m_ObjectHideFlags: 0
