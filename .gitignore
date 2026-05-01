@@ -1,3 +1,4 @@
+.vs/
 [Ll]ibrary/
 [Tt]emp/
 [Ll]ogs/
@@ -15,3 +16,11 @@ obj/
 *.svd
 *.pdb
 *.mdb
+Build/
+Builds/
+ServerData/
+StreamingAssets/aa/
+sysinfo.txt
+.idea/
+.DS_Store
+Thumbs.db
