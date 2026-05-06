@@ -13,5 +13,4 @@ MonoBehaviour:
   m_Name: Dialog1_Intro
   m_EditorClassIdentifier: 
   lines:
-  - Welcome little panda. I have first challenge for you to get you ready for this
-    big world. You need to go to the next map and kill 3 dwarfs.
+  - Welcome

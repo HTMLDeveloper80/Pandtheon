@@ -98,4 +98,9 @@ public class QuestManager : MonoBehaviour
     {
         OnQuestUpdated?.Invoke(runtime);
     }
+
+    public IEnumerable<QuestRuntime> GetAllQuests()
+    {
+        return quests.Values;
+    }
 }

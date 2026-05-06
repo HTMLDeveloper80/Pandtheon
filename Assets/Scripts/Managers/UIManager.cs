@@ -13,8 +13,13 @@ public class UIManager : MonoBehaviour
 
     [Header("Inventory UI")]
     [SerializeField] private GameObject inventoryPanel;
-    [SerializeField] private CanvasGroup inventoryCanvasgroup;
+    [SerializeField] private CanvasGroup inventoryCanvasGroup;
     private bool isInventoryOpen = false;
+
+    [Header("Codex UI")]
+    [SerializeField] private GameObject codexPanel;
+    [SerializeField] private CanvasGroup codexCanvasGroup;
+    private bool isCodexOpen = false;
 
     [Header("Pickup/Feedback UI")]
     [SerializeField] private TMP_Text pickupText;
@@ -23,9 +28,9 @@ public class UIManager : MonoBehaviour
     private Coroutine pickupRoutine;
 
     [Header("XP UI")]
-    [SerializeField] private UnityEngine.UI.Slider xpSlider;
-    [SerializeField] private TMPro.TMP_Text xpText;
-    [SerializeField] private TMPro.TMP_Text levelText;
+    [SerializeField] private Slider xpSlider;
+    [SerializeField] private TMP_Text xpText;
+    [SerializeField] private TMP_Text levelText;
 
     private void Awake()
     {
@@ -34,35 +39,58 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
 
-        if (inventoryCanvasgroup != null)
-        {
-            inventoryCanvasgroup.alpha = 0f;
-            inventoryCanvasgroup.interactable = false;
-            inventoryCanvasgroup.blocksRaycasts = false;
-        }
-        else if (inventoryPanel != null)
-        {
-            inventoryPanel.SetActive(false);
-        }
+        InitPanelClosed(inventoryCanvasGroup, inventoryPanel);
+        InitPanelClosed(codexCanvasGroup, codexPanel);
 
         if (pickupText != null)
-        {
             pickupText.text = "";
+    }
+
+    private void InitPanelClosed(CanvasGroup cg, GameObject panel)
+    {
+        if (cg != null)
+        {
+            cg.alpha = 0f;
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+        else if (panel != null)
+        {
+            panel.SetActive(false);
+        }
+    }
+
+    private void SetPanelState(CanvasGroup cg, GameObject panel, bool isOpen)
+    {
+        if (cg != null)
+        {
+            cg.alpha = isOpen ? 1f : 0f;
+            cg.interactable = isOpen;
+            cg.blocksRaycasts = isOpen;
+        }
+        else if (panel != null)
+        {
+            panel.SetActive(isOpen);
         }
     }
 
     public void UpdatePlayerHP(int current, int max)
     {
         float value = max > 0 ? (float)current / max : 0f;
-        playerHPSlider.value = value;
-        playerHPText.text = $"{current} / {max}";
+
+        if (playerHPSlider != null)
+            playerHPSlider.value = value;
+
+        if (playerHPText != null)
+            playerHPText.text = $"{current} / {max}";
     }
 
     public void UpdatePlayerLevel(int level, float currentXP, float xpToNext)
     {
-        if (xpSlider != null)
+        if (xpSlider != null && xpToNext > 0f)
             xpSlider.value = Mathf.Clamp01(currentXP / xpToNext);
 
         if (xpText != null)
@@ -72,51 +100,57 @@ public class UIManager : MonoBehaviour
             levelText.text = $"Lv. {level}";
     }
 
+    // ---------- INVENTORY ----------
     public void ToggleInventory()
     {
-        if (isInventoryOpen)
-            CloseInventory();
-        else
-            OpenInventory();
+        if (isInventoryOpen) CloseInventory();
+        else OpenInventory();
     }
 
     public void OpenInventory()
     {
         isInventoryOpen = true;
+        SetPanelState(inventoryCanvasGroup, inventoryPanel, true);
 
-        if (inventoryCanvasgroup != null)
-        {
-            inventoryCanvasgroup.alpha = 1f;
-            inventoryCanvasgroup.interactable = true;
-            inventoryCanvasgroup.blocksRaycasts = true;
-        }
-        else if (inventoryPanel != null)
-        {
-            inventoryPanel.SetActive(true);
-        }
+        // opcjonalnie: tylko jeden panel naraz
+        if (isCodexOpen)
+            CloseCodex();
     }
 
     public void CloseInventory()
     {
         isInventoryOpen = false;
-
-        if (inventoryCanvasgroup != null)
-        {
-            inventoryCanvasgroup.alpha = 0f;
-            inventoryCanvasgroup.interactable = false;
-            inventoryCanvasgroup.blocksRaycasts = false;
-        }
-        else if (inventoryPanel != null)
-        {
-            inventoryPanel.SetActive(false);
-        }
+        SetPanelState(inventoryCanvasGroup, inventoryPanel, false);
     }
 
-    public bool IsInventoryOpen()
+    public bool IsInventoryOpen() => isInventoryOpen;
+
+    // ---------- CODEX ----------
+    public void ToggleCodex()
     {
-        return isInventoryOpen;
+        if (isCodexOpen) CloseCodex();
+        else OpenCodex();
     }
 
+    public void OpenCodex()
+    {
+        isCodexOpen = true;
+        SetPanelState(codexCanvasGroup, codexPanel, true);
+
+        // opcjonalnie: tylko jeden panel naraz
+        if (isInventoryOpen)
+            CloseInventory();
+    }
+
+    public void CloseCodex()
+    {
+        isCodexOpen = false;
+        SetPanelState(codexCanvasGroup, codexPanel, false);
+    }
+
+    public bool IsCodexOpen() => isCodexOpen;
+
+    // ---------- PICKUP MESSAGE ----------
     public void ShowPickupMessage(string message)
     {
         if (pickupText == null)
@@ -137,6 +171,7 @@ public class UIManager : MonoBehaviour
 
         float fadeTime = 0.5f;
         float t = 0f;
+
         while (t < fadeTime)
         {
             t += Time.deltaTime;

@@ -18,9 +18,15 @@ public class NpcQuestGiver : MonoBehaviour
 
     public void Interact(PlayerStats playerStats, PlayerWallet playerWallet)
     {
-        if (questData == null || QuestManager.Instance == null)
+        if (questData == null)
         {
-            Show("...");
+            ShowFromDialog(notStartedDialog);
+            return;
+        }
+
+        if (QuestManager.Instance == null)
+        {
+            ShowFromDialog(notStartedDialog);
             return;
         }
 
