@@ -15,6 +15,7 @@ public class PlayerClickController : MonoBehaviour
     [SerializeField] private LayerMask enemyMask;
     [SerializeField] private LayerMask pickupMask;
     [SerializeField] private LayerMask platformMask;
+    [SerializeField] private LayerMask mapTransitionMask;
 
     [Header("Click")]
     [SerializeField] private float clickRadius = 0.08f;
@@ -50,6 +51,9 @@ public class PlayerClickController : MonoBehaviour
 
         // 2) LADDER (priorytet nad platform¹)
         if (TryLadder(world)) return;
+
+        // 2.5) MAP TRANSITION SIGN
+        if (TryMapTransition(world)) return;
 
         // 3) ENEMY
         if (TryEnemy(world)) return;
@@ -155,5 +159,26 @@ public class PlayerClickController : MonoBehaviour
 
         if (combat != null) combat.CancelCombat();
         navigator.NavigateToPlatform(targetPlatform, clickedX);
+    }
+
+    private bool TryMapTransition(Vector2 world)
+    {
+        Collider2D hit = Physics2D.OverlapPoint(world, mapTransitionMask);
+        if (hit == null)
+            hit = Physics2D.OverlapCircle(world, clickRadius, mapTransitionMask);
+
+        if (hit == null) return false;
+
+        MapTransitionSign sign =
+            hit.GetComponentInParent<MapTransitionSign>() ??
+            hit.GetComponent<MapTransitionSign>() ??
+            hit.GetComponentInChildren<MapTransitionSign>();
+
+        if (sign == null) return false;
+        if (!sign.CanEnter()) return true; // klik zu¿yty, ale warunki nieprzejœcia
+
+        if (combat != null) combat.CancelCombat();
+        sign.Interact();
+        return true;
     }
 }
