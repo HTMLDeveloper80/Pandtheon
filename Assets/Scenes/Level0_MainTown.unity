@@ -5478,6 +5478,50 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &514652999
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 514653001}
+  - component: {fileID: 514653000}
+  m_Layer: 0
+  m_Name: QuestManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &514653000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 514652999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81608f11b8c5b64fadac7fa482d697c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &514653001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 514652999}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.1894403, y: -0.17510985, z: -0.023242367}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &524776485
 GameObject:
   m_ObjectHideFlags: 0
@@ -9943,8 +9987,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00006804017}
-  m_SizeDelta: {x: 0, y: 300}
+  m_AnchoredPosition: {x: 0, y: 0.00007516768}
+  m_SizeDelta: {x: 0, y: 600}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &892649494
 GameObject:
@@ -16003,7 +16047,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   contentRoot: {fileID: 888578504}
-  questRowPrefab: {fileID: 1727071783015602873, guid: ec37ab1249731bf48ab7030a7a3e7176, type: 3}
+  questRowPrefab: {fileID: 420093819980188791, guid: ec37ab1249731bf48ab7030a7a3e7176, type: 3}
 --- !u!114 &1339893747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17172,8 +17216,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2068594042}
   m_HandleRect: {fileID: 2068594041}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0.9724896
+  m_Value: 0.9999964
+  m_Size: 0.9716667
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -25985,3 +26029,4 @@ SceneRoots:
   - {fileID: 83661061}
   - {fileID: 1622040247}
   - {fileID: 303935103}
+  - {fileID: 514653001}

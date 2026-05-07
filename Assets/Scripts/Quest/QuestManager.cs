@@ -23,14 +23,16 @@ public class QuestManager : MonoBehaviour
 
     public bool HasQuest(QuestData quest)
     {
-        if (quest == null) return false;
-        return quests.ContainsKey(quest.name);
+        var questId = GetQuestId(quest);
+        if (string.IsNullOrEmpty(questId)) return false;
+        return quests.ContainsKey(questId);
     }
 
     public QuestState GetState(QuestData quest)
     {
-        if (quest == null) return QuestState.NotStarted;
-        if (!quests.TryGetValue(quest.name, out var runtime))
+        var questId = GetQuestId(quest);
+        if (string.IsNullOrEmpty(questId)) return QuestState.NotStarted;
+        if (!quests.TryGetValue(questId, out var runtime))
             return QuestState.NotStarted;
 
         return runtime.state;
@@ -38,19 +40,21 @@ public class QuestManager : MonoBehaviour
 
     public QuestRuntime GetRuntime(QuestData quest)
     {
-        if (quest == null) return null;
-        quests.TryGetValue(quest.name, out var runtime);
+        var questId = GetQuestId(quest);
+        if (string.IsNullOrEmpty(questId)) return null;
+        quests.TryGetValue(questId, out var runtime);
         return runtime;
     }
 
     public void AcceptQuest(QuestData quest)
     {
-        if (quest == null) return;
+        var questId = GetQuestId(quest);
+        if (string.IsNullOrEmpty(questId)) return;
 
-        if (!quests.TryGetValue(quest.name, out var runtime))
+        if (!quests.TryGetValue(questId, out var runtime))
         {
             runtime = new QuestRuntime(quest);
-            quests.Add(quest.name, runtime);
+            quests.Add(questId, runtime);
         }
 
         runtime.state = QuestState.InProgress;
@@ -81,8 +85,10 @@ public class QuestManager : MonoBehaviour
 
     public bool TryTurnIn(QuestData quest, PlayerStats playerStats, PlayerWallet wallet)
     {
+        var questId = GetQuestId(quest);
         if (quest == null || playerStats == null || wallet == null) return false;
-        if (!quests.TryGetValue(quest.name, out var runtime)) return false;
+        if (string.IsNullOrEmpty(questId)) return false;
+        if (!quests.TryGetValue(questId, out var runtime)) return false;
         if (runtime.state != QuestState.ReadyToTurnIn) return false;
 
         runtime.state = QuestState.Completed;
@@ -102,5 +108,15 @@ public class QuestManager : MonoBehaviour
     public IEnumerable<QuestRuntime> GetAllQuests()
     {
         return quests.Values;
+    }
+
+    public static string GetQuestId(QuestData quest)
+    {
+        if (quest == null) return string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(quest.questName))
+            return quest.questName.Trim();
+
+        return quest.name;
     }
 }

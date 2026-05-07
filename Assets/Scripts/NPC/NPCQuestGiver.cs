@@ -14,6 +14,8 @@ public class NpcQuestGiver : MonoBehaviour
     [Header("UI over NPC")]
     [SerializeField] private NpcDialogBubbleUI bubbleUI;
 
+    private QuestState? lastState = null;
+    private DialogData lastDialogData = null;
     private int lineIndex = 0;
 
     public void Interact(PlayerStats playerStats, PlayerWallet playerWallet)
@@ -31,6 +33,14 @@ public class NpcQuestGiver : MonoBehaviour
         }
 
         QuestState state = QuestManager.Instance.GetState(questData);
+
+        if (!lastState.HasValue || lastState.Value != state)
+        {
+            lineIndex = 0;
+            lastDialogData = null;
+        }
+
+        lastState = state;
 
         switch (state)
         {
@@ -69,6 +79,12 @@ public class NpcQuestGiver : MonoBehaviour
         {
             Show(string.IsNullOrEmpty(fallback) ? "..." : fallback);
             return;
+        }
+
+        if (lastDialogData != data)
+        {
+            lineIndex = 0;
+            lastDialogData = data;
         }
 
         if (lineIndex >= data.lines.Length)

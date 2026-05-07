@@ -11,7 +11,7 @@ public class QuestRuntime
     public QuestRuntime(QuestData questData)
     {
         data = questData;
-        questId = questData != null ? questData.name : "";
+        questId = QuestManager.GetQuestId(questData);
         state = QuestState.NotStarted;
         currentAmount = 0;
     }
