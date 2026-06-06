@@ -67,10 +67,7 @@ public class PlayerClickController : MonoBehaviour
 
     private bool TryNpc(Vector2 world)
     {
-        Collider2D hit = Physics2D.OverlapPoint(world, npcMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, npcMask);
-
+        Collider2D hit = FindClickable(world, npcMask);
         if (hit == null) return false;
 
         var npc = hit.GetComponentInParent<NpcQuestGiver>() ?? hit.GetComponent<NpcQuestGiver>();
@@ -83,10 +80,7 @@ public class PlayerClickController : MonoBehaviour
 
     private bool TryLadder(Vector2 world)
     {
-        Collider2D hit = Physics2D.OverlapPoint(world, ladderMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, ladderMask);
-
+        Collider2D hit = FindClickable(world, ladderMask);
         if (hit == null) return false;
 
         LadderClickTarget ladder =
@@ -102,10 +96,7 @@ public class PlayerClickController : MonoBehaviour
 
     private bool TryEnemy(Vector2 world)
     {
-        Collider2D hit = Physics2D.OverlapPoint(world, enemyMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, enemyMask);
-
+        Collider2D hit = FindClickable(world, enemyMask);
         if (hit == null) return false;
 
         EnemyHealth enemy =
@@ -121,10 +112,7 @@ public class PlayerClickController : MonoBehaviour
 
     private bool TryPickup(Vector2 world)
     {
-        Collider2D hit = Physics2D.OverlapPoint(world, pickupMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, pickupMask);
-
+        Collider2D hit = FindClickable(world, pickupMask);
         if (hit == null) return false;
 
         PickupItem pickup =
@@ -143,10 +131,7 @@ public class PlayerClickController : MonoBehaviour
     {
         if (navigator == null) return;
 
-        Collider2D hit = Physics2D.OverlapPoint(world, platformMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, platformMask);
-
+        Collider2D hit = FindClickable(world, platformMask);
         if (hit == null) return;
 
         PlatformNode targetPlatform =
@@ -163,10 +148,7 @@ public class PlayerClickController : MonoBehaviour
 
     private bool TryMapTransition(Vector2 world)
     {
-        Collider2D hit = Physics2D.OverlapPoint(world, mapTransitionMask);
-        if (hit == null)
-            hit = Physics2D.OverlapCircle(world, clickRadius, mapTransitionMask);
-
+        Collider2D hit = FindClickable(world, mapTransitionMask);
         if (hit == null) return false;
 
         MapTransitionSign sign =
@@ -180,5 +162,24 @@ public class PlayerClickController : MonoBehaviour
         if (combat != null) combat.CancelCombat();
         sign.Interact();
         return true;
+    }
+
+    private Collider2D FindClickable(Vector2 world, LayerMask mask)
+    {
+        if (mask.value != 0)
+        {
+            Collider2D maskedHit = Physics2D.OverlapPoint(world, mask);
+            if (maskedHit == null)
+                maskedHit = Physics2D.OverlapCircle(world, clickRadius, mask);
+
+            if (maskedHit != null)
+                return maskedHit;
+        }
+
+        Collider2D hit = Physics2D.OverlapPoint(world);
+        if (hit == null)
+            hit = Physics2D.OverlapCircle(world, clickRadius);
+
+        return hit;
     }
 }

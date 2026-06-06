@@ -4,9 +4,8 @@ public class PlayerCombat : MonoBehaviour
 {
     [Header("Combat")]
     [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private float attackRate = 1.0f; // ataki / sekunda
-
-    private float nextAttackTime = 0f;
+    [SerializeField] private float attackRate = 1.0f;
+    [SerializeField] private float attackReachY = 1.25f;
 
     private PlayerMovement movement;
     private PlayerStats stats;
@@ -14,10 +13,10 @@ public class PlayerCombat : MonoBehaviour
     private Transform currentTarget;
     private EnemyHealth targetEnemy;
 
-    private bool autoAttackActive = false;
-    private bool isAttackCooldown = false;
+    private bool autoAttackActive;
+    private float nextAttackTime;
 
-    private void Start()
+    private void Awake()
     {
         movement = GetComponent<PlayerMovement>();
         stats = GetComponent<PlayerStats>();
@@ -25,21 +24,18 @@ public class PlayerCombat : MonoBehaviour
 
     private void Update()
     {
-        if (!autoAttackActive) return;
+        if (!autoAttackActive)
+            return;
+
         if (targetEnemy == null || targetEnemy.IsDead)
         {
             ClearTarget();
             return;
         }
 
-        if (isAttackCooldown) return;
-
         TryApproachOrAttack();
     }
 
-    /// <summary>
-    /// Wywołuj z zewnętrznego click-routera po kliknięciu enemy.
-    /// </summary>
     public void SetTarget(EnemyHealth enemy)
     {
         if (enemy == null || enemy.IsDead)
@@ -51,7 +47,6 @@ public class PlayerCombat : MonoBehaviour
         currentTarget = enemy.transform;
         targetEnemy = enemy;
         autoAttackActive = true;
-        isAttackCooldown = false;
 
         if (movement != null)
             movement.SetMarkerAt(currentTarget.position);
@@ -66,28 +61,32 @@ public class PlayerCombat : MonoBehaviour
 
     private void TryApproachOrAttack()
     {
-        if (movement == null || stats == null || currentTarget == null || targetEnemy == null) return;
+        if (movement == null || stats == null || currentTarget == null || targetEnemy == null)
+            return;
 
-        float dist = Vector2.Distance(movement.CurrentPosition(), currentTarget.position);
-        float finalAttackRate = Mathf.Max(0.01f, attackRate + stats.attributes.GetAttackSpeed());
+        Vector2 playerPos = movement.CurrentPosition();
+        Vector2 targetPos = currentTarget.position;
 
-        if (dist <= attackRange)
+        float horizontalDistance = Mathf.Abs(targetPos.x - playerPos.x);
+        float verticalDistance = Mathf.Abs(targetPos.y - playerPos.y);
+
+        if (horizontalDistance <= attackRange && verticalDistance <= attackReachY)
         {
-            movement.StopMovement();
+            movement.StopMovement(false);
 
             if (Time.time >= nextAttackTime)
             {
                 PerformAttack();
-                nextAttackTime = Time.time + (1f / finalAttackRate);
-
-                isAttackCooldown = true;
-                Invoke(nameof(ResetAttackCooldown), 1f / finalAttackRate);
+                nextAttackTime = Time.time + GetAttackInterval();
             }
         }
         else
         {
-            Vector3 direction = (currentTarget.position - (Vector3)movement.CurrentPosition()).normalized;
-            Vector3 desiredPos = currentTarget.position - direction * attackRange * 0.9f;
+            float direction = Mathf.Sign(targetPos.x - playerPos.x);
+            if (Mathf.Abs(direction) < 0.01f)
+                direction = transform.localScale.x >= 0f ? 1f : -1f;
+
+            Vector3 desiredPos = new Vector3(targetPos.x - direction * attackRange * 0.85f, playerPos.y, 0f);
             movement.MoveTo(desiredPos);
         }
 
@@ -95,12 +94,22 @@ public class PlayerCombat : MonoBehaviour
             movement.UpdateMarkerPosition(currentTarget.position);
     }
 
+    private float GetAttackInterval()
+    {
+        float finalAttackRate = attackRate;
+        if (stats != null)
+            finalAttackRate += stats.attributes.GetAttackSpeed();
+
+        return 1f / Mathf.Max(0.01f, finalAttackRate);
+    }
+
     private void PerformAttack()
     {
-        if (targetEnemy == null || targetEnemy.IsDead || stats == null) return;
+        if (targetEnemy == null || targetEnemy.IsDead || stats == null)
+            return;
 
         int damage = stats.TotalDamage;
-        bool isCrit = Random.value < (stats.CritChance / 100f);
+        bool isCrit = Random.value < stats.CritChance / 100f;
 
         if (isCrit)
             damage = Mathf.RoundToInt(damage * stats.CritDamageMultiplier);
@@ -108,19 +117,11 @@ public class PlayerCombat : MonoBehaviour
         targetEnemy.TakeDamage(damage);
     }
 
-    private void ResetAttackCooldown()
-    {
-        isAttackCooldown = false;
-    }
-
     private void ClearTarget()
     {
         autoAttackActive = false;
         currentTarget = null;
         targetEnemy = null;
-        isAttackCooldown = false;
-
-        CancelInvoke(nameof(ResetAttackCooldown));
 
         if (movement != null)
             movement.ClearMarker();

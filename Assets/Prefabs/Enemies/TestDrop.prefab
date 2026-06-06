@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2634840863083006540}
   - component: {fileID: -1891873520162330705}
   - component: {fileID: 1633629994482921203}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: TestDrop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -77,7 +77,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.030668259, g: 0, b: 1, a: 1}
   m_FlipX: 0
@@ -137,7 +137,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b00b89dc3f9501a469f9927ee7a9a7b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemName: Test
-  icon: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  amount: 1
-  hoverPickupDelay: 0.2
+  itemData: {fileID: 0}
+  pickupDelay: 0.2

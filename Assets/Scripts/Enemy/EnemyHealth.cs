@@ -4,30 +4,45 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     [Header("Health Settings")]
-    public int maxHealth;
+    public int maxHealth = 1;
     private int currentHealth;
 
-    private bool isDead = false;
+    private bool isDead;
 
     private EnemyStats stats;
     private EnemyLoot loot;
-    [HideInInspector]public EnemyRespawner respawner;
+    [HideInInspector] public EnemyRespawner respawner;
 
     [SerializeField] private float destroyDelay = 0.5f;
+
+    public bool IsDead => isDead;
+    public int CurrentHealth => currentHealth;
 
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
         loot = GetComponent<EnemyLoot>();
-        respawner = GetComponent<EnemyRespawner>();
+
+        if (respawner == null)
+            respawner = GetComponent<EnemyRespawner>();
     }
 
-    void Start()
+    private void Start()
     {
-        if (stats != null && stats.data != null)
-            maxHealth = stats.data.maxHP;
+        ResetHealthFromData();
+    }
 
-        currentHealth = maxHealth;
+    public void Initialize(EnemyData enemyData, EnemyRespawner owner)
+    {
+        respawner = owner;
+
+        if (stats == null)
+            stats = GetComponent<EnemyStats>();
+
+        if (stats != null && enemyData != null)
+            stats.ApplyData(enemyData);
+
+        ResetHealthFromData();
     }
 
     public void TakeDamage(int damage)
@@ -35,45 +50,38 @@ public class EnemyHealth : MonoBehaviour
         if (isDead)
             return;
 
-        currentHealth -= damage;
-        Debug.Log($"{damage} tyle obra¿eñ dosta³ enemy!");
+        currentHealth -= Mathf.Max(0, damage);
+        Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{maxHealth}");
 
         if (currentHealth <= 0)
-        {
             Die();
-        }
     }
 
-    void Die()
+    private void ResetHealthFromData()
+    {
+        if (stats != null && stats.Data != null)
+            maxHealth = stats.Data.maxHP;
+
+        maxHealth = Mathf.Max(1, maxHealth);
+        currentHealth = maxHealth;
+        isDead = false;
+    }
+
+    private void Die()
     {
         if (isDead)
             return;
 
         isDead = true;
 
-        if (QuestManager.Instance != null && stats != null && stats.data != null)
-        {
-            // u¿ywamy enemyType jako identyfikatora celu questa
-            QuestManager.Instance.AddKill(stats.data.enemyType.ToString());
-        }
+        if (QuestManager.Instance != null && stats != null && stats.Data != null)
+            QuestManager.Instance.AddKill(stats.Data.enemyType.ToString());
 
         if (loot != null)
             loot.DropLoot();
 
-        PlayerStats player = FindFirstObjectByType<PlayerStats>();
-        if (player != null && stats != null && stats.data != null)
-        {
-            double xpGain = stats.data.xpReward;
-            player.AddXP(xpGain);
-
-            PlayerWallet wallet = player.GetComponent<PlayerWallet>();
-            if (wallet != null)
-            {
-                wallet.AddMoney(stats.MoneyReward);
-            }
-
-            Debug.Log($"Gracz dosta³ {stats.MoneyReward:F2} banknotów za pokonanie {stats.data.enemyType}");
-        }
+        GiveRewards();
+        DisableAfterDeath();
 
         if (respawner != null)
             respawner.OnEnemyKilled();
@@ -81,5 +89,32 @@ public class EnemyHealth : MonoBehaviour
         Destroy(gameObject, destroyDelay);
     }
 
-    public bool IsDead => isDead;
+    private void GiveRewards()
+    {
+        PlayerStats player = FindFirstObjectByType<PlayerStats>();
+        if (player == null || stats == null || stats.Data == null)
+            return;
+
+        player.AddXP(stats.XPReward);
+
+        PlayerWallet wallet = player.GetComponent<PlayerWallet>();
+        if (wallet != null)
+            wallet.AddMoney(stats.MoneyReward);
+
+        Debug.Log($"Player received {stats.MoneyReward:F2} money for defeating {stats.Data.enemyType}");
+    }
+
+    private void DisableAfterDeath()
+    {
+        EnemyMovement movement = GetComponent<EnemyMovement>();
+        if (movement != null)
+            movement.enabled = false;
+
+        foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
+            col.enabled = false;
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+    }
 }

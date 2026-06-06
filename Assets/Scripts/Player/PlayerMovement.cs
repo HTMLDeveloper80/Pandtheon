@@ -142,12 +142,12 @@ public class PlayerMovement : MonoBehaviour
 
 
 
-    public void StopMovement()
+    public void StopMovement(bool clearMarker = true)
     {
         isMoving = false;
         stuckTimer = 0f;
 
-        if (destroyMarkerOnArrive)
+        if (clearMarker && destroyMarkerOnArrive)
             ClearMarker();
     }
 

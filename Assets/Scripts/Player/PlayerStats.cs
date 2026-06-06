@@ -36,8 +36,8 @@ public class PlayerStats : MonoBehaviour
         currentHealth = MaxHP;
         currentMana = MaxMana;
 
-        UIManager.Instance.UpdatePlayerHP(currentHealth, MaxHP);
-        UIManager.Instance.UpdatePlayerLevel(level, (float)currentXP, (float)XPToNextLevel);
+        UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
+        UIManager.Instance?.UpdatePlayerLevel(level, (float)currentXP, (float)XPToNextLevel);
 
         var move = GetComponent<PlayerMovement>();
         if (move != null)
@@ -103,14 +103,14 @@ public class PlayerStats : MonoBehaviour
 
     public void TakeDamage(int dmg)
     {
-        if (isInvulnerable) 
+        if (isInvulnerable)
             return;
 
         currentHealth -= dmg;
         if (currentHealth < 0)
             currentHealth = 0;
 
-        UIManager.Instance.UpdatePlayerHP(currentHealth, MaxHP);
+        UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
         StartCoroutine(InvulnerabilityCooldown());
 
         if (currentHealth <= 0)
@@ -126,11 +126,15 @@ public class PlayerStats : MonoBehaviour
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         for (float t = 0; t < invulnerabilityTime; t += 0.2f)
         {
-            sr.enabled = !sr.enabled;
+            if (sr != null)
+                sr.enabled = !sr.enabled;
+
             yield return new WaitForSeconds(0.2f);
         }
 
-        sr.enabled = true;
+        if (sr != null)
+            sr.enabled = true;
+
         isInvulnerable = false;
     }
 

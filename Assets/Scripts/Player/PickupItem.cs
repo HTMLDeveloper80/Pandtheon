@@ -24,15 +24,30 @@ public class PickupItem : MonoBehaviour
         if (collected)
             yield break;
 
-        if (!InventoryManager.Instance.HasFreeSlot())
+        if (itemData == null)
         {
-            Debug.Log("❌ Inventory full — item stays on the ground.");
+            Debug.LogError($"{name}: PickupItem nie ma przypisanego ItemData!");
+            yield break;
+        }
+
+        InventoryManager inventory = InventoryManager.Instance;
+
+        if (inventory == null)
+        {
+            Debug.LogError("Brak InventoryManager w aktualnej scenie!");
+            yield break;
+        }
+
+        inventory.RefreshSlots();
+
+        if (!inventory.HasFreeSlot())
+        {
+            Debug.Log("Inventory full - item stays on the ground.");
             yield break;
         }
 
         collected = true;
-
-        InventoryManager.Instance.AddItem(itemData);
+        inventory.AddItem(itemData);
 
         UIManager.Instance?.ShowPickupMessage(
             $"+{itemData.amount} {itemData.itemName}"

@@ -6,6 +6,22 @@ public class QuestManager : MonoBehaviour
 {
     public static QuestManager Instance { get; private set; }
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void EnsureExists()
+    {
+        if (Instance != null) return;
+
+        var existing = FindFirstObjectByType<QuestManager>();
+        if (existing != null)
+        {
+            Instance = existing;
+            return;
+        }
+
+        var go = new GameObject("QuestManager");
+        Instance = go.AddComponent<QuestManager>();
+    }
+
     private readonly Dictionary<string, QuestRuntime> quests = new Dictionary<string, QuestRuntime>();
 
     public event Action<QuestRuntime> OnQuestUpdated;
@@ -19,6 +35,7 @@ public class QuestManager : MonoBehaviour
         }
 
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     public bool HasQuest(QuestData quest)
