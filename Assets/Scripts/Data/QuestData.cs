@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "NewQuest", menuName = "Quests/Quest")]
 public class QuestData : ScriptableObject
@@ -7,6 +8,7 @@ public class QuestData : ScriptableObject
     [TextArea] public string description;
 
     [Header("Cel")]
+    [FormerlySerializedAs("targetID")]
     public string targetEnemyName;
     public int requiredAmount;
 

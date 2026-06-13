@@ -31,11 +31,16 @@ public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void SetItem(ItemData data)
     {
+        SetItem(data, data != null ? data.amount : 0);
+    }
+
+    public void SetItem(ItemData data, int amount)
+    {
         if (data == null) return;
 
         ItemRef = data;
         ItemName = data.itemName;
-        Amount = data.amount;
+        Amount = amount;
         Icon = data.icon;
         HasItem = true;
 
@@ -114,7 +119,7 @@ public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (!dragged.HasItem) return;
 
         SwapItems(dragged);
-        InventoryManager.Instance?.RefreshSlots();
+        InventoryManager.Instance?.SaveCurrentSlotOrder();
     }
 
     private void SwapItems(InventorySlot other)

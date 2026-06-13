@@ -102,6 +102,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7501573160133726532}
   - component: {fileID: 5564789513316770588}
+  - component: {fileID: 8767522398835926621}
   m_Layer: 7
   m_Name: Sprite
   m_TagString: Untagged
@@ -179,6 +180,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &8767522398835926621
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2117615152912023767}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 17caa7fce30544346aabf712fd1c5289, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4998087628263195468
 GameObject:
   m_ObjectHideFlags: 0
@@ -368,10 +391,13 @@ MonoBehaviour:
   clickRadius: 0.35
   standOffsetY: 0.33
   targetMarkerPrefab: {fileID: 5213081196744423164, guid: b592e7804b7ecf341b2cef04456005b8, type: 3}
-  markerOffsetY: 0.2
+  markerOffsetY: 0.8
   destroyMarkerOnArrive: 1
   stuckTimeToStop: 0.25
   stuckMinDeltaX: 0.0005
+  animator: {fileID: 0}
+  walkAnimationReferenceSpeed: 5
+  minimumWalkSpeed: 0.05
 --- !u!114 &5443238953954560409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,6 +444,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackRange: 1
   attackRate: 1
+  attackReachY: 1.25
 --- !u!114 &3647459605843099108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -482,7 +509,7 @@ MonoBehaviour:
     m_Bits: 64
   pickupMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2048
   platformMask:
     serializedVersion: 2
     m_Bits: 8

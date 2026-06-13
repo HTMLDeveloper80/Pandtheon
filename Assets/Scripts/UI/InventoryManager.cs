@@ -1,10 +1,28 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
 {
+    [Serializable]
+    private class StoredItem
+    {
+        public ItemData data;
+        public int amount;
+
+        public StoredItem(ItemData data, int amount)
+        {
+            this.data = data;
+            this.amount = amount;
+        }
+    }
+
     public static InventoryManager Instance { get; private set; }
+
+    // Dane sa wspolne dla wszystkich scen, ale UI slotow pozostaje lokalne.
+    private static readonly List<StoredItem> storedItems = new List<StoredItem>();
 
     [Header("Slots")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
@@ -12,7 +30,15 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Money Display")]
     [SerializeField] private TMP_Text moneyText;
+
     private PlayerWallet playerWallet;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRuntimeState()
+    {
+        Instance = null;
+        storedItems.Clear();
+    }
 
     private void Awake()
     {
@@ -23,42 +49,27 @@ public class InventoryManager : MonoBehaviour
         }
 
         Instance = this;
-        Debug.Log($"[InventoryManager] ✅ Awake() działa na obiekcie: {gameObject.name}");
-
         RefreshSlots();
-        Debug.Log($"[InventoryManager] 🧩 Wykryto slotów: {slots.Count}");
+        DisplayStoredItems();
     }
-
 
     private void Start()
     {
         StartCoroutine(InitWallet());
-
         RefreshSlots();
-
-        Debug.Log($"[InventoryManager] 🔍 Liczba slotów wykryta: {slots.Count}");
-        int i = 0;
-        foreach (var s in slots)
-        {
-            Debug.Log($"[InventoryManager] Slot {i}: {s.name}, HasItem={s.HasItem}");
-            i++;
-        }
+        DisplayStoredItems();
     }
 
-    private System.Collections.IEnumerator InitWallet()
+    private void OnDestroy()
     {
-        yield return null; // czeka 1 frame
+        if (Instance == this)
+            Instance = null;
+    }
+
+    private IEnumerator InitWallet()
+    {
+        yield return null;
         playerWallet = FindFirstObjectByType<PlayerWallet>();
-
-        if (playerWallet == null)
-        {
-            Debug.LogError("PlayerWallet nadal nie znaleziony! Upewnij się, że gracz ma ten komponent!");
-        }
-        else
-        {
-            Debug.Log("PlayerWallet znaleziony, aktualizuję UI.");
-        }
-
         UpdateMoneyUI();
     }
 
@@ -67,84 +78,85 @@ public class InventoryManager : MonoBehaviour
         slots.Clear();
 
         if (slotContainer != null)
-        {
             slots.AddRange(slotContainer.GetComponentsInChildren<InventorySlot>(true));
-            Debug.Log($"[InventoryManager] 🧩 Znaleziono {slots.Count} slotów w {slotContainer.name}");
-        }
         else
-        {
-            slots.AddRange(GetComponentsInChildren<InventorySlot>(true));
-            Debug.Log($"[InventoryManager] ⚠️ slotContainer nie ustawiony — szukam lokalnie, znaleziono: {slots.Count}");
-        }
+            slots.AddRange(FindObjectsByType<InventorySlot>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.InstanceID));
     }
 
-
-    public void AddItem(ItemData data)
+    public bool CanAddItem(ItemData data)
     {
         if (data == null)
-        {
-            Debug.LogWarning("Próba dodania pustego itemData!");
-            return;
-        }
+            return false;
 
-        // Upewnij się, że lista jest aktualna
         RefreshSlots();
 
-        // Szukaj identycznego przedmiotu (po referencji)
-        foreach (var slot in slots)
+        foreach (StoredItem item in storedItems)
         {
-            if (slot.HasItem && slot.ItemRef == data)
-            {
-                slot.AddAmount(data.amount);
-                Debug.Log($"Zstackowano {data.amount}x {data.itemName}");
-                UpdateMoneyUI();
-                return;
-            }
+            if (item.data == data)
+                return true;
         }
 
-        // Szukaj pustego slota
-        foreach (var slot in slots)
-        {
-            if (!slot.HasItem)
-            {
-                slot.SetItem(data);
-                Debug.Log($"Dodano nowy przedmiot: {data.itemName}");
-                UpdateMoneyUI();
-                return;
-            }
-        }
-
-        Debug.LogWarning("❌ Inventory pełne! Nie udało się dodać " + data.itemName);
+        return storedItems.Count < slots.Count;
     }
 
+    public bool AddItem(ItemData data)
+    {
+        if (!CanAddItem(data))
+        {
+            Debug.LogWarning($"Inventory pelne. Nie dodano: {data?.itemName}");
+            return false;
+        }
 
+        foreach (StoredItem item in storedItems)
+        {
+            if (item.data != data)
+                continue;
+
+            item.amount += Mathf.Max(1, data.amount);
+            DisplayStoredItems();
+            return true;
+        }
+
+        storedItems.Add(new StoredItem(data, Mathf.Max(1, data.amount)));
+        DisplayStoredItems();
+        return true;
+    }
+
+    public void SaveCurrentSlotOrder()
+    {
+        RefreshSlots();
+        storedItems.Clear();
+
+        foreach (InventorySlot slot in slots)
+        {
+            if (slot.HasItem && slot.ItemRef != null)
+                storedItems.Add(new StoredItem(slot.ItemRef, slot.Amount));
+        }
+    }
+
+    private void DisplayStoredItems()
+    {
+        foreach (InventorySlot slot in slots)
+            slot.ClearSlot();
+
+        int count = Mathf.Min(storedItems.Count, slots.Count);
+        for (int i = 0; i < count; i++)
+            slots[i].SetItem(storedItems[i].data, storedItems[i].amount);
+    }
 
     public void UpdateMoneyUI()
     {
-        if (moneyText == null)
-        {
-            Debug.LogWarning("moneyText NIE jest przypisany w InventoryManager!");
+        if (moneyText == null || playerWallet == null)
             return;
-        }
-
-        if (playerWallet == null)
-        {
-            Debug.LogWarning("PlayerWallet jeszcze nie znaleziony — spróbuj ponownie.");
-            return;
-        }
 
         moneyText.text = $"{playerWallet.Money:F2} $";
-        Debug.Log($"[InventoryManager] Zaktualizowano pieniądze: {playerWallet.Money:F2} $");
     }
 
     public bool HasFreeSlot()
     {
-        foreach (var slot in slots)
-        {
-            if (!slot.HasItem)
-                return true;    // istnieje wolne miejsce
-        }
-        return false;
+        RefreshSlots();
+        return storedItems.Count < slots.Count;
     }
-
 }

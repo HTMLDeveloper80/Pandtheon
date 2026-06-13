@@ -3,35 +3,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyMovement : MonoBehaviour
 {
-    [Header("Movement")]
-    [SerializeField] private float moveSpeed = 1.5f;
-    [SerializeField] private float chaseSpeedMultiplier = 1.25f;
-
-    [Header("Ground checks")]
-    public Transform groundCheck;
-    public float groundCheckDistance = 0.5f;
-    public LayerMask groundLayer;
+    [Header("Scene references")]
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask obstacleLayer;
-    [SerializeField] private float wallCheckDistance = 0.2f;
-
-    [Header("Patrol")]
-    [SerializeField] private bool keepNearSpawn = true;
-    [SerializeField] private float patrolRadius = 3f;
-    public Vector2 moveDurationRange = new Vector2(2f, 5f);
-    public Vector2 idleDurationRange = new Vector2(1f, 3f);
-    public float chanceDirectionChance = 0.5f;
-
-    [Header("Chase")]
-    [SerializeField] private bool chasePlayer = true;
-    [SerializeField] private float detectRange = 4f;
-    [SerializeField] private float loseRange = 6f;
-    [SerializeField] private float stopDistanceFromPlayer = 0.75f;
     [SerializeField] private LayerMask playerLayer;
-
-    [Header("Contact damage")]
-    public int contactDamage = 1;
-    [SerializeField] private bool useEnemyDataDamage = true;
-    [SerializeField] private float contactDamageCooldown = 1f;
 
     private Rigidbody2D rb;
     private EnemyStats stats;
@@ -45,6 +21,8 @@ public class EnemyMovement : MonoBehaviour
     private float actionTimer;
     private float nextContactDamageTime;
 
+    private EnemyData Data => stats != null ? stats.Data : null;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -53,13 +31,27 @@ public class EnemyMovement : MonoBehaviour
 
         rb.freezeRotation = true;
 
+        if (groundLayer.value == 0)
+            groundLayer = LayerMask.GetMask("Platform");
+
         if (obstacleLayer.value == 0)
             obstacleLayer = groundLayer;
+
+        if (playerLayer.value == 0)
+            playerLayer = LayerMask.GetMask("Player");
     }
 
     private void Start()
     {
+        if (Data == null)
+        {
+            Debug.LogError($"{name}: EnemyMovement requires EnemyData from EnemyRespawner.");
+            enabled = false;
+            return;
+        }
+
         spawnPosition = rb.position;
+        FaceDirection(Data.startsMovingRight ? 1 : -1);
         PickNewPatrolAction();
     }
 
@@ -80,6 +72,7 @@ public class EnemyMovement : MonoBehaviour
         if (playerTarget != null)
         {
             ChasePlayer();
+            TryDealContactDamageToTarget();
             return;
         }
 
@@ -89,7 +82,7 @@ public class EnemyMovement : MonoBehaviour
 
     private void UpdateTarget()
     {
-        if (!chasePlayer)
+        if (!Data.chasePlayer)
         {
             playerTarget = null;
             return;
@@ -98,7 +91,7 @@ public class EnemyMovement : MonoBehaviour
         if (playerTarget != null)
         {
             float distance = Vector2.Distance(transform.position, playerTarget.position);
-            if (distance > loseRange)
+            if (distance > Data.loseRange)
                 playerTarget = null;
 
             return;
@@ -113,7 +106,7 @@ public class EnemyMovement : MonoBehaviour
     {
         if (playerLayer.value != 0)
         {
-            Collider2D hit = Physics2D.OverlapCircle(transform.position, detectRange, playerLayer);
+            Collider2D hit = Physics2D.OverlapCircle(transform.position, Data.detectRange, playerLayer);
             if (hit != null)
                 return hit.GetComponentInParent<PlayerStats>();
         }
@@ -123,7 +116,7 @@ public class EnemyMovement : MonoBehaviour
             return null;
 
         float distance = Vector2.Distance(transform.position, player.transform.position);
-        return distance <= detectRange ? player : null;
+        return distance <= Data.detectRange ? player : null;
     }
 
     private void Patrol()
@@ -137,7 +130,7 @@ public class EnemyMovement : MonoBehaviour
             return;
         }
 
-        Move(direction, moveSpeed);
+        Move(direction, Data.moveSpeed);
     }
 
     private void ChasePlayer()
@@ -146,7 +139,7 @@ public class EnemyMovement : MonoBehaviour
             return;
 
         float dx = playerTarget.position.x - transform.position.x;
-        if (Mathf.Abs(dx) <= stopDistanceFromPlayer)
+        if (Mathf.Abs(dx) <= Data.stopDistanceFromPlayer)
             return;
 
         int direction = dx > 0f ? 1 : -1;
@@ -155,7 +148,7 @@ public class EnemyMovement : MonoBehaviour
         if (!CanMove(direction))
             return;
 
-        Move(direction, moveSpeed * chaseSpeedMultiplier);
+        Move(direction, Data.moveSpeed * Data.chaseSpeedMultiplier);
     }
 
     private void Move(int direction, float speed)
@@ -170,40 +163,40 @@ public class EnemyMovement : MonoBehaviour
             ? groundCheck.position
             : transform.position + new Vector3(direction * 0.45f, -0.2f, 0f);
 
-        RaycastHit2D groundHit = Physics2D.Raycast(groundOrigin, Vector2.down, groundCheckDistance, groundLayer);
+        RaycastHit2D groundHit = Physics2D.Raycast(groundOrigin, Vector2.down, Data.groundCheckDistance, groundLayer);
         if (groundHit.collider == null)
             return false;
 
         Vector2 wallOrigin = bodyCollider != null ? bodyCollider.bounds.center : transform.position;
         LayerMask wallMask = obstacleLayer.value != 0 ? obstacleLayer : groundLayer;
-        RaycastHit2D wallHit = Physics2D.Raycast(wallOrigin, Vector2.right * direction, wallCheckDistance, wallMask);
+        RaycastHit2D wallHit = Physics2D.Raycast(wallOrigin, Vector2.right * direction, Data.wallCheckDistance, wallMask);
         return wallHit.collider == null;
     }
 
     private bool IsLeavingPatrolArea(int direction)
     {
-        if (!keepNearSpawn || patrolRadius <= 0f)
+        if (!Data.keepNearSpawn || Data.patrolRadius <= 0f)
             return false;
 
-        float nextX = rb.position.x + direction * moveSpeed * Time.fixedDeltaTime;
-        return Mathf.Abs(nextX - spawnPosition.x) > patrolRadius;
+        float nextX = rb.position.x + direction * Data.moveSpeed * Time.fixedDeltaTime;
+        return Mathf.Abs(nextX - spawnPosition.x) > Data.patrolRadius;
     }
 
     private void PickNewPatrolAction()
     {
         actionTimer = 0f;
-        isMoving = Random.value < 0.65f;
+        isMoving = Random.value < Data.patrolMoveChance;
 
         if (isMoving)
         {
-            currentActionTime = Random.Range(moveDurationRange.x, moveDurationRange.y);
+            currentActionTime = Random.Range(Data.moveDurationRange.x, Data.moveDurationRange.y);
 
-            if (Random.value < chanceDirectionChance)
+            if (Random.value < Data.directionChangeChance)
                 Flip();
         }
         else
         {
-            currentActionTime = Random.Range(idleDurationRange.x, idleDurationRange.y);
+            currentActionTime = Random.Range(Data.idleDurationRange.x, Data.idleDurationRange.y);
         }
     }
 
@@ -246,31 +239,63 @@ public class EnemyMovement : MonoBehaviour
 
     private void TryDealContactDamage(Collider2D other)
     {
+        if (Data == null)
+            return;
+
         PlayerStats player = other.GetComponentInParent<PlayerStats>();
         if (player == null)
             return;
 
+        TryDealContactDamage(player);
+    }
+
+    private void TryDealContactDamageToTarget()
+    {
+        if (Data == null || playerTarget == null || bodyCollider == null)
+            return;
+
+        PlayerStats player = playerTarget.GetComponent<PlayerStats>();
+        if (player == null)
+            player = playerTarget.GetComponentInParent<PlayerStats>();
+
+        if (player == null)
+            return;
+
+        Collider2D playerCollider = player.GetComponent<Collider2D>();
+        if (playerCollider == null)
+            return;
+
+        ColliderDistance2D distance = bodyCollider.Distance(playerCollider);
+        if (!distance.isOverlapped)
+            return;
+
+        TryDealContactDamage(player);
+    }
+
+    private void TryDealContactDamage(PlayerStats player)
+    {
         if (Time.time < nextContactDamageTime)
             return;
 
-        int damage = contactDamage;
-        if (useEnemyDataDamage && stats != null && stats.Data != null && stats.Data.damage > 0)
-            damage = stats.Data.damage;
-
-        player.TakeDamage(damage);
-        nextContactDamageTime = Time.time + Mathf.Max(0.05f, contactDamageCooldown);
+        player.TakeDamage(Data.damage);
+        nextContactDamageTime = Time.time + Data.contactDamageCooldown;
     }
 
     private void OnDrawGizmosSelected()
     {
+        EnemyStats enemyStats = stats != null ? stats : GetComponent<EnemyStats>();
+        EnemyData data = enemyStats != null ? enemyStats.Data : null;
+        if (data == null)
+            return;
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectRange);
+        Gizmos.DrawWireSphere(transform.position, data.detectRange);
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, loseRange);
+        Gizmos.DrawWireSphere(transform.position, data.loseRange);
 
         Gizmos.color = Color.cyan;
         Vector3 center = Application.isPlaying ? (Vector3)spawnPosition : transform.position;
-        Gizmos.DrawLine(center + Vector3.left * patrolRadius, center + Vector3.right * patrolRadius);
+        Gizmos.DrawLine(center + Vector3.left * data.patrolRadius, center + Vector3.right * data.patrolRadius);
     }
 }

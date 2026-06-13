@@ -3,20 +3,16 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyStats))]
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("Health Settings")]
-    public int maxHealth = 1;
     private int currentHealth;
-
     private bool isDead;
 
     private EnemyStats stats;
     private EnemyLoot loot;
     [HideInInspector] public EnemyRespawner respawner;
 
-    [SerializeField] private float destroyDelay = 0.5f;
-
     public bool IsDead => isDead;
     public int CurrentHealth => currentHealth;
+    public int MaxHealth => stats != null && stats.Data != null ? stats.Data.maxHP : 0;
 
     private void Awake()
     {
@@ -39,19 +35,19 @@ public class EnemyHealth : MonoBehaviour
         if (stats == null)
             stats = GetComponent<EnemyStats>();
 
-        if (stats != null && enemyData != null)
-            stats.ApplyData(enemyData);
+        if (stats != null)
+            stats.Initialize(enemyData);
 
         ResetHealthFromData();
     }
 
     public void TakeDamage(int damage)
     {
-        if (isDead)
+        if (isDead || stats == null || stats.Data == null)
             return;
 
         currentHealth -= Mathf.Max(0, damage);
-        Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{maxHealth}");
+        Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{MaxHealth}");
 
         if (currentHealth <= 0)
             Die();
@@ -59,11 +55,14 @@ public class EnemyHealth : MonoBehaviour
 
     private void ResetHealthFromData()
     {
-        if (stats != null && stats.Data != null)
-            maxHealth = stats.Data.maxHP;
+        if (stats == null || stats.Data == null)
+        {
+            currentHealth = 0;
+            Debug.LogError($"{name}: EnemyData was not provided during initialization.");
+            return;
+        }
 
-        maxHealth = Mathf.Max(1, maxHealth);
-        currentHealth = maxHealth;
+        currentHealth = stats.Data.maxHP;
         isDead = false;
     }
 
@@ -85,6 +84,10 @@ public class EnemyHealth : MonoBehaviour
 
         if (respawner != null)
             respawner.OnEnemyKilled();
+
+        float destroyDelay = stats != null && stats.Data != null
+            ? stats.Data.destroyDelay
+            : 0f;
 
         Destroy(gameObject, destroyDelay);
     }

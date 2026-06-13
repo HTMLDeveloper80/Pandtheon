@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(EnemyStats))]
 public class EnemyLoot : MonoBehaviour
 {
     private EnemyStats stats;
@@ -11,41 +12,48 @@ public class EnemyLoot : MonoBehaviour
 
     public void DropLoot()
     {
-        if (stats == null || stats.data == null) return;
+        if (stats == null)
+            stats = GetComponent<EnemyStats>();
 
-        var data = stats.data;
-        if (data.dropPrefab == null)
+        EnemyData data = stats != null ? stats.Data : null;
+        if (data == null)
         {
-            Debug.LogWarning($"{name}: EnemyDrop.dropPrefab nie jest ustawiony!");
+            Debug.LogWarning($"{name}: EnemyLoot cannot drop items without EnemyData.");
             return;
         }
 
         if (data.possibleDrops == null || data.possibleDrops.Length == 0)
             return;
 
-        bool droppedSomething = false;
+        if (data.dropPrefab == null)
+        {
+            Debug.LogWarning($"{name}: Drop Prefab is not assigned in {data.name}.");
+            return;
+        }
 
-        // Szansa na drop
-        foreach (var itemData in data.possibleDrops)
+        foreach (ItemData itemData in data.possibleDrops)
         {
             if (itemData == null)
                 continue;
 
-            if (Random.value <= itemData.dropChance)
-            {
-                Vector3 dropPos = transform.position + new Vector3(Random.Range(-0.3f, 0.3f), 0.2f, 0);
+            float dropChance = Mathf.Clamp01(itemData.dropChance);
+            if (Random.value > dropChance)
+                continue;
 
-                GameObject drop = Instantiate(data.dropPrefab, dropPos, Quaternion.identity);
+            Vector3 dropPosition = transform.position +
+                new Vector3(Random.Range(-0.3f, 0.3f), 0.2f, 0f);
 
-                var pickup = drop.GetComponent<PickupItem>();
-                if (pickup == null)
-                {
-                    pickup = drop.AddComponent<PickupItem>();
-                }
-                pickup.itemData = itemData;
+            GameObject drop = Instantiate(
+                data.dropPrefab,
+                dropPosition,
+                Quaternion.identity
+            );
 
-                droppedSomething = true;
-            }
+            PickupItem pickup = drop.GetComponent<PickupItem>();
+            if (pickup == null)
+                pickup = drop.AddComponent<PickupItem>();
+
+            pickup.itemData = itemData;
         }
     }
 }

@@ -32,11 +32,21 @@ public class PlayerMovement : MonoBehaviour
     private float stuckTimer = 0f;
     private float lastX;
 
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private float walkAnimationReferenceSpeed = 5f;
+    [SerializeField] private float minimumWalkSpeed = 0.05f;
+
+    private float previousAnimationX;
+
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.freezeRotation = true;
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
     }
 
 
@@ -45,6 +55,9 @@ public class PlayerMovement : MonoBehaviour
         targetPosition = rb.position;
         isMoving = false;
         lastX = rb.position.x;
+
+        previousAnimationX = rb.position.x;
+        UpdateWalkAnimation(0f);
     }
 
     private void Update()
@@ -86,6 +99,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        float horizontalSpeed =
+            Mathf.Abs(rb.position.x - previousAnimationX) / Time.fixedDeltaTime;
+
+        previousAnimationX = rb.position.x;
+
+        UpdateWalkAnimation(isMoving ? horizontalSpeed : 0f);
+
         if (!isMoving)
             return;
 
@@ -205,5 +225,24 @@ public class PlayerMovement : MonoBehaviour
         var results = new System.Collections.Generic.List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
         return results.Count > 0;
+    }
+
+    private void UpdateWalkAnimation(float horizontalSpeed)
+    {
+        if (animator == null)
+            return;
+
+        bool walking = isMoving && horizontalSpeed > minimumWalkSpeed;
+
+        animator.SetBool("IsMoving", walking);
+
+        float speedMultiplier = walking
+            ? Mathf.Clamp(
+                horizontalSpeed / walkAnimationReferenceSpeed,
+                0.5f,
+                2f)
+            : 1f;
+
+        animator.SetFloat("WalkSpeed", speedMultiplier);
     }
 }

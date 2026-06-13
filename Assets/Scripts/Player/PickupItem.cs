@@ -38,16 +38,16 @@ public class PickupItem : MonoBehaviour
             yield break;
         }
 
-        inventory.RefreshSlots();
-
-        if (!inventory.HasFreeSlot())
+        if (!inventory.CanAddItem(itemData))
         {
             Debug.Log("Inventory full - item stays on the ground.");
             yield break;
         }
 
+        if (!inventory.AddItem(itemData))
+            yield break;
+
         collected = true;
-        inventory.AddItem(itemData);
 
         UIManager.Instance?.ShowPickupMessage(
             $"+{itemData.amount} {itemData.itemName}"

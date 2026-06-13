@@ -14,9 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   maxHP: 10
-  damage: 2
+  damage: 3
+  contactDamageCooldown: 2
   moneyReward: 0.25
-  xpReward: 10
+  xpReward: 5
+  moveSpeed: 1.2
+  chaseSpeedMultiplier: 1
+  startsMovingRight: 1
+  keepNearSpawn: 1
+  patrolRadius: 1.5
+  moveDurationRange: {x: 1, y: 2.5}
+  idleDurationRange: {x: 2, y: 4}
+  patrolMoveChance: 0.5
+  directionChangeChance: 0.5
+  chasePlayer: 1
+  detectRange: 2
+  loseRange: 3
+  stopDistanceFromPlayer: 1
+  groundCheckDistance: 0.5
+  wallCheckDistance: 0.2
+  destroyDelay: 0.5
+  respawnDelay: 15
   possibleDrops:
   - {fileID: 11400000, guid: 3483cddfdd60a4e4d82525a74cef7d3b, type: 2}
   dropPrefab: {fileID: 7893776651581016899, guid: 329083d8d9d2c6240bd5eace4d746804, type: 3}

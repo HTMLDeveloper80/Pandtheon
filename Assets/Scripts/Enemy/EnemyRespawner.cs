@@ -6,7 +6,6 @@ public class EnemyRespawner : MonoBehaviour
     [Header("Respawn Settings")]
     public GameObject enemyPrefab;
     public EnemyData enemyData;
-    public float respawnDelay = 30f;
     [SerializeField] private bool spawnOnStart = true;
     [SerializeField] private bool parentSpawnedEnemyToSpawner = false;
 
@@ -17,10 +16,7 @@ public class EnemyRespawner : MonoBehaviour
     private void Start()
     {
         if (spawnOnStart)
-        {
-            hasStartedSpawning = true;
             SpawnEnemy();
-        }
     }
 
     private void Update()
@@ -31,8 +27,6 @@ public class EnemyRespawner : MonoBehaviour
 
     public void SpawnEnemy()
     {
-        hasStartedSpawning = true;
-
         if (currentEnemy != null)
             return;
 
@@ -42,6 +36,14 @@ public class EnemyRespawner : MonoBehaviour
             return;
         }
 
+        if (enemyData == null)
+        {
+            Debug.LogWarning($"{name}: EnemyData is not assigned on EnemyRespawner.");
+            return;
+        }
+
+        hasStartedSpawning = true;
+
         Transform parent = parentSpawnedEnemyToSpawner ? transform : null;
         currentEnemy = Instantiate(enemyPrefab, transform.position, transform.rotation, parent);
 
@@ -50,10 +52,6 @@ public class EnemyRespawner : MonoBehaviour
             enemyHealth.Initialize(enemyData, this);
         else
             Debug.LogWarning($"{name}: Spawned enemy has no EnemyHealth component.");
-
-        EnemyStats stats = currentEnemy.GetComponent<EnemyStats>();
-        if (stats != null && enemyData != null)
-            stats.ApplyData(enemyData);
     }
 
     public void OnEnemyKilled()
@@ -66,8 +64,27 @@ public class EnemyRespawner : MonoBehaviour
 
     private IEnumerator RespawnAfterDelay()
     {
-        yield return new WaitForSeconds(Mathf.Max(0f, respawnDelay));
+        float respawnDelay = enemyData != null ? enemyData.respawnDelay : 0f;
+        yield return new WaitForSeconds(respawnDelay);
         respawnRoutine = null;
         SpawnEnemy();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (enemyData == null)
+            return;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, enemyData.detectRange);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, enemyData.loseRange);
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(
+            transform.position + Vector3.left * enemyData.patrolRadius,
+            transform.position + Vector3.right * enemyData.patrolRadius
+        );
     }
 }
