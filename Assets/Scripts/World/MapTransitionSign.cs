@@ -4,14 +4,13 @@ using UnityEngine.SceneManagement;
 public class MapTransitionSign : MonoBehaviour
 {
     [Header("Scene target")]
-    [Tooltip("Nazwa sceny docelowej dok³adnie jak w Build Settings.")]
+    [Tooltip("Nazwa sceny docelowej dokladnie jak w Build Settings.")]
     [SerializeField] private string targetSceneName;
 
-    [Header("Optional spawn point")]
-    [Tooltip("Jeœli u¿ywasz systemu spawn pointów miêdzy scenami, wpisz ID punktu wejœcia.")]
+    [Header("Target spawn point")]
+    [Tooltip("ID punktu wejscia na scenie docelowej.")]
     [SerializeField] private string targetSpawnId;
 
-    // Na ten moment zawsze true (brak wymagañ)
     public bool CanEnter()
     {
         return !string.IsNullOrWhiteSpace(targetSceneName);
@@ -21,13 +20,12 @@ public class MapTransitionSign : MonoBehaviour
     {
         if (!CanEnter())
         {
-            Debug.LogWarning($"[MapTransitionSign] Brak targetSceneName na obiekcie: {name}");
+            Debug.LogWarning(
+                $"[MapTransitionSign] Brak targetSceneName na obiekcie: {name}");
             return;
         }
 
-        // Tutaj póŸniej mo¿esz zapisaæ targetSpawnId np. do GameManagera / static data
-        // SceneTransitionState.NextSpawnId = targetSpawnId;
-
+        SceneTransitionState.SetNextSpawn(targetSpawnId);
         SceneManager.LoadScene(targetSceneName);
     }
 
@@ -36,6 +34,7 @@ public class MapTransitionSign : MonoBehaviour
     {
         if (targetSceneName != null)
             targetSceneName = targetSceneName.Trim();
+
         if (targetSpawnId != null)
             targetSpawnId = targetSpawnId.Trim();
     }

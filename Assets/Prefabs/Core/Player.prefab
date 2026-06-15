@@ -442,9 +442,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20656021f9efe5f409a4188f13d1f70a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackRange: 1
+  attackRange: 2
   attackRate: 1
-  attackReachY: 1.25
+  attackReachY: 2
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 64
+  slashOriginOffsetY: 0.15
+  slashDuration: 0.16
+  slashWidth: 0.08
+  slashSegments: 18
+  slashColor: {r: 1, g: 1, b: 1, a: 1}
+  slashSortingOrder: 25
 --- !u!114 &3647459605843099108
 MonoBehaviour:
   m_ObjectHideFlags: 0

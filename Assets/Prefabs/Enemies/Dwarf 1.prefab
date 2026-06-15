@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 8789425811115312335}
   - component: {fileID: 4388114248712913495}
   - component: {fileID: 6885325537877257178}
+  - component: {fileID: 5399483159027667902}
   m_Layer: 6
   m_Name: Dwarf 1
   m_TagString: Enemy
@@ -210,32 +211,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8faeab5ce97d3d540aba74afb361ae44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
-  chaseSpeedMultiplier: 1.25
   groundCheck: {fileID: 9119017042345832991}
-  groundCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 0
-  wallCheckDistance: 0.2
-  keepNearSpawn: 1
-  patrolRadius: 3
-  moveDurationRange: {x: 2, y: 5}
-  idleDurationRange: {x: 1, y: 3}
-  chanceDirectionChance: 0.5
-  chasePlayer: 1
-  detectRange: 4
-  loseRange: 6
-  stopDistanceFromPlayer: 0.75
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
-  contactDamage: 1
-  useEnemyDataDamage: 1
-  contactDamageCooldown: 1
 --- !u!114 &8789425811115312335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,9 +233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d447c6593d89b094e84d0b40a2e5e7e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 3
   respawner: {fileID: 0}
-  destroyDelay: 0.5
 --- !u!114 &4388114248712913495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,4 +258,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26422f7a68176a642818213a4a797e43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: 59baa5a0a121d0644b836748bb35e0ca, type: 2}
+--- !u!114 &5399483159027667902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9036484835311023150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c80cfa94c884ac449a6946b812274ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  localOffset: {x: 0, y: 0.62, z: 0}
+  barSize: {x: 0.75, y: 0.08}
+  borderSize: 0.015
+  backgroundColor: {r: 0.08, g: 0.08, b: 0.08, a: 1}
+  fullHealthColor: {r: 0.2, g: 0.85, b: 0.25, a: 1}
+  lowHealthColor: {r: 0.9, g: 0.15, b: 0.1, a: 1}
+  sortingOrder: 20
+  hideAtFullHealth: 1
+  hideWhenDead: 1

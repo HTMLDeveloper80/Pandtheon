@@ -7,12 +7,12 @@ using UnityEngine;
 public class InventoryManager : MonoBehaviour
 {
     [Serializable]
-    private class StoredItem
+    private class StoredSlot
     {
         public ItemData data;
         public int amount;
 
-        public StoredItem(ItemData data, int amount)
+        public StoredSlot(ItemData data, int amount)
         {
             this.data = data;
             this.amount = amount;
@@ -22,7 +22,7 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance { get; private set; }
 
     // Dane sa wspolne dla wszystkich scen, ale UI slotow pozostaje lokalne.
-    private static readonly List<StoredItem> storedItems = new List<StoredItem>();
+    private static readonly List<StoredSlot> storedSlots = new List<StoredSlot>();
 
     [Header("Slots")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
@@ -37,7 +37,7 @@ public class InventoryManager : MonoBehaviour
     private static void ResetRuntimeState()
     {
         Instance = null;
-        storedItems.Clear();
+        storedSlots.Clear();
     }
 
     private void Awake()
@@ -91,14 +91,21 @@ public class InventoryManager : MonoBehaviour
             return false;
 
         RefreshSlots();
+        EnsureStoredSlotCount();
 
-        foreach (StoredItem item in storedItems)
+        foreach (StoredSlot slot in storedSlots)
         {
-            if (item.data == data)
+            if (slot.data == data)
                 return true;
         }
 
-        return storedItems.Count < slots.Count;
+        foreach (StoredSlot slot in storedSlots)
+        {
+            if (slot.data == null)
+                return true;
+        }
+
+        return false;
     }
 
     public bool AddItem(ItemData data)
@@ -109,41 +116,69 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
-        foreach (StoredItem item in storedItems)
+        EnsureStoredSlotCount();
+
+        foreach (StoredSlot slot in storedSlots)
         {
-            if (item.data != data)
+            if (slot.data != data)
                 continue;
 
-            item.amount += Mathf.Max(1, data.amount);
+            slot.amount += Mathf.Max(1, data.amount);
             DisplayStoredItems();
             return true;
         }
 
-        storedItems.Add(new StoredItem(data, Mathf.Max(1, data.amount)));
-        DisplayStoredItems();
-        return true;
+        foreach (StoredSlot slot in storedSlots)
+        {
+            if (slot.data != null)
+                continue;
+
+            slot.data = data;
+            slot.amount = Mathf.Max(1, data.amount);
+            DisplayStoredItems();
+            return true;
+        }
+
+        return false;
     }
 
     public void SaveCurrentSlotOrder()
     {
         RefreshSlots();
-        storedItems.Clear();
+        storedSlots.Clear();
 
         foreach (InventorySlot slot in slots)
         {
             if (slot.HasItem && slot.ItemRef != null)
-                storedItems.Add(new StoredItem(slot.ItemRef, slot.Amount));
+                storedSlots.Add(new StoredSlot(slot.ItemRef, slot.Amount));
+            else
+                storedSlots.Add(new StoredSlot(null, 0));
         }
     }
 
     private void DisplayStoredItems()
     {
+        EnsureStoredSlotCount();
+
         foreach (InventorySlot slot in slots)
             slot.ClearSlot();
 
-        int count = Mathf.Min(storedItems.Count, slots.Count);
+        int count = Mathf.Min(storedSlots.Count, slots.Count);
         for (int i = 0; i < count; i++)
-            slots[i].SetItem(storedItems[i].data, storedItems[i].amount);
+        {
+            StoredSlot storedSlot = storedSlots[i];
+            if (storedSlot.data != null)
+                slots[i].SetItem(storedSlot.data, storedSlot.amount);
+        }
+    }
+
+    private void EnsureStoredSlotCount()
+    {
+        while (storedSlots.Count < slots.Count)
+            storedSlots.Add(new StoredSlot(null, 0));
+
+        if (storedSlots.Count > slots.Count)
+            storedSlots.RemoveRange(slots.Count, storedSlots.Count - slots.Count);
     }
 
     public void UpdateMoneyUI()
@@ -157,6 +192,14 @@ public class InventoryManager : MonoBehaviour
     public bool HasFreeSlot()
     {
         RefreshSlots();
-        return storedItems.Count < slots.Count;
+        EnsureStoredSlotCount();
+
+        foreach (StoredSlot slot in storedSlots)
+        {
+            if (slot.data == null)
+                return true;
+        }
+
+        return false;
     }
 }

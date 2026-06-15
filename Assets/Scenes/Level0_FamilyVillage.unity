@@ -1427,6 +1427,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 282142973}
+  - component: {fileID: 282142974}
   m_Layer: 0
   m_Name: SpawnPoint
   m_TagString: Untagged
@@ -1449,6 +1450,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &282142974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282142972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 682e36b34d08d154fa25f0877d6c32a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnId: Level0_EndOfVillage
 --- !u!1 &303935101
 GameObject:
   m_ObjectHideFlags: 0
@@ -13191,6 +13205,10 @@ PrefabInstance:
       propertyPath: animator
       value: 
       objectReference: {fileID: 1703108375}
+    - target: {fileID: 4865376248981517595, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
+      propertyPath: enemyMask.m_Bits
+      value: 64
+      objectReference: {fileID: 0}
     - target: {fileID: 4998087628263195468, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
       propertyPath: m_Name
       value: Player
@@ -13234,6 +13252,10 @@ PrefabInstance:
     - target: {fileID: 5330269511579531886, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5443238953954560409, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
+      propertyPath: invulnerabilityTime
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7501573160133726532, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
       propertyPath: m_LocalPosition.x

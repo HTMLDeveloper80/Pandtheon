@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Analytics;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -20,51 +19,71 @@ public class PlayerStats : MonoBehaviour
 
     [Header("Levelling System")]
     public int level = 1;
-    public double currentXP = 0;
+    public double currentXP;
     public double baseXP = 10;
     public double power = 2.1;
     public double multiplier = 1.05;
     public double curve = 11.0;
-    public int unspentSkillPoints = 0;
-    public double XPToNextLevel => baseXP * Math.Pow(level, power) * Math.Pow(multiplier, level / curve);
+    public int unspentSkillPoints;
 
-    private bool isInvulnerable = false;
+    public double XPToNextLevel =>
+        baseXP *
+        Math.Pow(level, power) *
+        Math.Pow(multiplier, level / curve);
+
     public float invulnerabilityTime = 3f;
 
-    void Start()
+    private bool isInvulnerable;
+    private bool restoredRuntimeState;
+
+    private void Awake()
     {
-        currentHealth = MaxHP;
-        currentMana = MaxMana;
+        restoredRuntimeState = PlayerRuntimeState.TryRestoreStats(this);
+    }
 
-        UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
-        UIManager.Instance?.UpdatePlayerLevel(level, (float)currentXP, (float)XPToNextLevel);
-
-        var move = GetComponent<PlayerMovement>();
-        if (move != null)
+    private void Start()
+    {
+        if (!restoredRuntimeState)
         {
-            move.moveSpeed = TotalMoveSpeed;
+            currentHealth = MaxHP;
+            currentMana = MaxMana;
+            SaveRuntimeState();
         }
+
+        ApplyMovementSpeed();
+        RefreshUI();
+    }
+
+    private void OnDestroy()
+    {
+        SaveRuntimeState();
     }
 
     public int MaxHP => baseHealth + attributes.GetBonusHP();
     public int TotalDamage => baseDamage + attributes.GetBonusDamage();
-    public float TotalMoveSpeed => baseMoveSpeed + attributes.GetBonusMoveSpeed();
-    public float TotalAttackSpeed => baseAttackSpeed + attributes.GetAttackSpeed();
+    public float TotalMoveSpeed =>
+        baseMoveSpeed + attributes.GetBonusMoveSpeed();
+
+    public float TotalAttackSpeed =>
+        baseAttackSpeed + attributes.GetAttackSpeed();
+
     public int MaxMana => attributes.GetBonusMana();
     public float CritChance => attributes.GetCritChance();
-    public float CritDamageMultiplier => attributes.GetCritDamageMultiplier();
+    public float CritDamageMultiplier =>
+        attributes.GetCritDamageMultiplier();
+
     public float HPRegen => attributes.GetHPRegen();
     public float DropRateBonus => attributes.GetDropRate();
+
     public void AddXP(double amount)
     {
+        if (amount <= 0d)
+            return;
+
         currentXP += amount;
-
-        // log testowy – możesz zostawić
-        Debug.Log($"XP = {currentXP:F6} / {GetXPToNextLevel(level):F6}");
-
         TryLevelUp();
-
-        UIManager.Instance?.UpdatePlayerLevel(level, (float)currentXP, GetXPToNextLevel(level));
+        SaveRuntimeState();
+        RefreshLevelUI();
     }
 
     private void TryLevelUp()
@@ -75,89 +94,108 @@ public class PlayerStats : MonoBehaviour
         {
             currentXP -= requiredXP;
             LevelUp();
-
             requiredXP = GetXPToNextLevel(level);
         }
     }
-
 
     private void LevelUp()
     {
         level++;
         unspentSkillPoints++;
-
-        Debug.Log($"🎉 LEVEL UP! Teraz poziom {level}");
-
         currentHealth = MaxHP;
 
         UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
-        UIManager.Instance?.ShowPickupMessage($"LEVEL {level}! +1 Punkt umiejętności");
+        UIManager.Instance?.ShowPickupMessage(
+            $"LEVEL {level}! +1 Punkt umiejetnosci");
     }
 
     private int GetXPToNextLevel(int levelToCheck)
     {
-        double raw = baseXP * Math.Pow(levelToCheck, power) * Math.Pow(multiplier, levelToCheck / curve);
-        return Mathf.RoundToInt((float)raw); // 🔹 Unity'owy int z zaokrągleniem
+        double raw =
+            baseXP *
+            Math.Pow(levelToCheck, power) *
+            Math.Pow(multiplier, levelToCheck / curve);
+
+        return Mathf.RoundToInt((float)raw);
     }
 
-
-    public void TakeDamage(int dmg)
+    public void TakeDamage(int damage)
     {
         if (isInvulnerable)
             return;
 
-        currentHealth -= dmg;
-        if (currentHealth < 0)
-            currentHealth = 0;
-
+        currentHealth = Mathf.Max(0, currentHealth - damage);
+        SaveRuntimeState();
         UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
+
         StartCoroutine(InvulnerabilityCooldown());
 
         if (currentHealth <= 0)
-        {
             Die();
-        }
     }
 
     private IEnumerator InvulnerabilityCooldown()
     {
         isInvulnerable = true;
 
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        for (float t = 0; t < invulnerabilityTime; t += 0.2f)
+        SpriteRenderer spriteRenderer =
+            GetComponentInChildren<SpriteRenderer>();
+
+        for (float time = 0f;
+             time < invulnerabilityTime;
+             time += 0.2f)
         {
-            if (sr != null)
-                sr.enabled = !sr.enabled;
+            if (spriteRenderer != null)
+                spriteRenderer.enabled = !spriteRenderer.enabled;
 
             yield return new WaitForSeconds(0.2f);
         }
 
-        if (sr != null)
-            sr.enabled = true;
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = true;
 
         isInvulnerable = false;
     }
 
     public void Heal(int amount)
     {
-        currentHealth += amount;
-        if (currentHealth > MaxHP)
-            currentHealth = MaxHP;
+        currentHealth = Mathf.Clamp(
+            currentHealth + amount,
+            0,
+            MaxHP);
 
+        SaveRuntimeState();
         UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
     }
 
-    void Die()
+    public void SaveRuntimeState()
     {
-        Debug.Log("Gracz zginął!");
+        PlayerRuntimeState.SaveStats(this);
+    }
+
+    private void ApplyMovementSpeed()
+    {
+        PlayerMovement movement = GetComponent<PlayerMovement>();
+        if (movement != null)
+            movement.moveSpeed = TotalMoveSpeed;
+    }
+
+    private void RefreshUI()
+    {
+        UIManager.Instance?.UpdatePlayerHP(currentHealth, MaxHP);
+        RefreshLevelUI();
+    }
+
+    private void RefreshLevelUI()
+    {
+        UIManager.Instance?.UpdatePlayerLevel(
+            level,
+            (float)currentXP,
+            GetXPToNextLevel(level));
+    }
+
+    private void Die()
+    {
+        Debug.Log("Gracz zginal!");
     }
 }
-
-public static class Mathd
-{
-    public static double Pow(double x, double y)
-    {
-        return System.Math.Pow(x, y);
-    }
-}
-

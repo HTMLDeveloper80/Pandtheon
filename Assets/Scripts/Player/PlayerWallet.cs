@@ -3,51 +3,61 @@ using UnityEngine;
 public class PlayerWallet : MonoBehaviour
 {
     [Header("Player Money")]
-    [SerializeField] private double money = 0f;
+    [SerializeField] private double money;
 
     public double Money => money;
 
-    private void Start()
+    private void Awake()
     {
-        // ?? odœwie¿ UI po starcie
-        Invoke(nameof(DelayedUIUpdate), 0.1f);
+        if (PlayerRuntimeState.TryRestoreMoney(out double savedMoney))
+            money = savedMoney;
+        else
+            PlayerRuntimeState.SaveMoney(money);
     }
 
-    void DelayedUIUpdate()
+    private void Start()
     {
         InventoryManager.Instance?.UpdateMoneyUI();
+    }
+
+    private void OnDestroy()
+    {
+        PlayerRuntimeState.SaveMoney(money);
     }
 
     public void AddMoney(double amount)
     {
-        if (amount <= 0)
+        if (amount <= 0d)
             return;
 
         money += amount;
-        InventoryManager.Instance?.UpdateMoneyUI();
-        Debug.Log($"Player gained {amount:F2} banknotes. Total: {money:F2}");
+        SaveAndRefresh();
     }
 
     public void SpendMoney(double amount)
     {
-        if (amount <= 0)
+        if (amount <= 0d)
             return;
 
-        if (money >= amount)
-        {
-            money -= amount;
-            InventoryManager.Instance?.UpdateMoneyUI();
-            Debug.Log($"Player spent {amount:F2} banknotes. Remaining: {money:F2}");
-        }
-        else
+        if (money < amount)
         {
             Debug.LogWarning("Not enough money!");
+            return;
         }
+
+        money -= amount;
+        SaveAndRefresh();
     }
 
     public void SetMoney(float newValue)
     {
         money = Mathf.Max(0f, newValue);
+        SaveAndRefresh();
+    }
+
+    private void SaveAndRefresh()
+    {
+        PlayerRuntimeState.SaveMoney(money);
         InventoryManager.Instance?.UpdateMoneyUI();
     }
 }

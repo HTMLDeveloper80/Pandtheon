@@ -1,7 +1,7 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,23 +14,23 @@ public class UIManager : MonoBehaviour
     [Header("Inventory UI")]
     [SerializeField] private GameObject inventoryPanel;
     [SerializeField] private CanvasGroup inventoryCanvasGroup;
-    private bool isInventoryOpen = false;
+    private bool isInventoryOpen;
 
     [Header("Codex UI")]
     [SerializeField] private GameObject codexPanel;
     [SerializeField] private CanvasGroup codexCanvasGroup;
-    private bool isCodexOpen = false;
+    private bool isCodexOpen;
 
     [Header("Pickup/Feedback UI")]
     [SerializeField] private TMP_Text pickupText;
     [SerializeField] private float pickupTextDuration = 2.5f;
 
-    private Coroutine pickupRoutine;
-
     [Header("XP UI")]
     [SerializeField] private Slider xpSlider;
     [SerializeField] private TMP_Text xpText;
     [SerializeField] private TMP_Text levelText;
+
+    private Coroutine pickupRoutine;
 
     private void Awake()
     {
@@ -41,35 +41,44 @@ public class UIManager : MonoBehaviour
         }
 
         Instance = this;
-
-        InitPanelClosed(inventoryCanvasGroup, inventoryPanel);
-        InitPanelClosed(codexCanvasGroup, codexPanel);
+        RestorePanelState();
 
         if (pickupText != null)
             pickupText.text = "";
     }
 
-    private void InitPanelClosed(CanvasGroup cg, GameObject panel)
+    private void OnDestroy()
     {
-        if (cg != null)
-        {
-            cg.alpha = 0f;
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-        }
-        else if (panel != null)
-        {
-            panel.SetActive(false);
-        }
+        if (Instance == this)
+            Instance = null;
     }
 
-    private void SetPanelState(CanvasGroup cg, GameObject panel, bool isOpen)
+    private void RestorePanelState()
     {
-        if (cg != null)
+        isInventoryOpen = UIRuntimeState.OpenPanel == MainUIPanel.Inventory;
+        isCodexOpen = UIRuntimeState.OpenPanel == MainUIPanel.Codex;
+
+        SetPanelState(
+            inventoryCanvasGroup,
+            inventoryPanel,
+            isInventoryOpen);
+
+        SetPanelState(
+            codexCanvasGroup,
+            codexPanel,
+            isCodexOpen);
+    }
+
+    private void SetPanelState(
+        CanvasGroup canvasGroup,
+        GameObject panel,
+        bool isOpen)
+    {
+        if (canvasGroup != null)
         {
-            cg.alpha = isOpen ? 1f : 0f;
-            cg.interactable = isOpen;
-            cg.blocksRaycasts = isOpen;
+            canvasGroup.alpha = isOpen ? 1f : 0f;
+            canvasGroup.interactable = isOpen;
+            canvasGroup.blocksRaycasts = isOpen;
         }
         else if (panel != null)
         {
@@ -94,17 +103,21 @@ public class UIManager : MonoBehaviour
             xpSlider.value = Mathf.Clamp01(currentXP / xpToNext);
 
         if (xpText != null)
-            xpText.text = $"{Mathf.RoundToInt(currentXP)} / {Mathf.RoundToInt(xpToNext)} XP";
+        {
+            xpText.text =
+                $"{Mathf.RoundToInt(currentXP)} / {Mathf.RoundToInt(xpToNext)} XP";
+        }
 
         if (levelText != null)
             levelText.text = $"Lv. {level}";
     }
 
-    // ---------- INVENTORY ----------
     public void ToggleInventory()
     {
-        if (isInventoryOpen) CloseInventory();
-        else OpenInventory();
+        if (isInventoryOpen)
+            CloseInventory();
+        else
+            OpenInventory();
     }
 
     public void OpenInventory()
@@ -112,24 +125,37 @@ public class UIManager : MonoBehaviour
         isInventoryOpen = true;
         SetPanelState(inventoryCanvasGroup, inventoryPanel, true);
 
-        // opcjonalnie: tylko jeden panel naraz
         if (isCodexOpen)
-            CloseCodex();
+            CloseCodex(saveClosedState: false);
+
+        UIRuntimeState.OpenPanel = MainUIPanel.Inventory;
     }
 
     public void CloseInventory()
     {
-        isInventoryOpen = false;
-        SetPanelState(inventoryCanvasGroup, inventoryPanel, false);
+        CloseInventory(saveClosedState: true);
     }
 
-    public bool IsInventoryOpen() => isInventoryOpen;
+    private void CloseInventory(bool saveClosedState)
+    {
+        isInventoryOpen = false;
+        SetPanelState(inventoryCanvasGroup, inventoryPanel, false);
 
-    // ---------- CODEX ----------
+        if (saveClosedState)
+            UIRuntimeState.OpenPanel = MainUIPanel.None;
+    }
+
+    public bool IsInventoryOpen()
+    {
+        return isInventoryOpen;
+    }
+
     public void ToggleCodex()
     {
-        if (isCodexOpen) CloseCodex();
-        else OpenCodex();
+        if (isCodexOpen)
+            CloseCodex();
+        else
+            OpenCodex();
     }
 
     public void OpenCodex()
@@ -137,20 +163,31 @@ public class UIManager : MonoBehaviour
         isCodexOpen = true;
         SetPanelState(codexCanvasGroup, codexPanel, true);
 
-        // opcjonalnie: tylko jeden panel naraz
         if (isInventoryOpen)
-            CloseInventory();
+            CloseInventory(saveClosedState: false);
+
+        UIRuntimeState.OpenPanel = MainUIPanel.Codex;
     }
 
     public void CloseCodex()
     {
-        isCodexOpen = false;
-        SetPanelState(codexCanvasGroup, codexPanel, false);
+        CloseCodex(saveClosedState: true);
     }
 
-    public bool IsCodexOpen() => isCodexOpen;
+    private void CloseCodex(bool saveClosedState)
+    {
+        isCodexOpen = false;
+        SetPanelState(codexCanvasGroup, codexPanel, false);
 
-    // ---------- PICKUP MESSAGE ----------
+        if (saveClosedState)
+            UIRuntimeState.OpenPanel = MainUIPanel.None;
+    }
+
+    public bool IsCodexOpen()
+    {
+        return isCodexOpen;
+    }
+
     public void ShowPickupMessage(string message)
     {
         if (pickupText == null)
@@ -169,13 +206,13 @@ public class UIManager : MonoBehaviour
 
         yield return new WaitForSeconds(pickupTextDuration);
 
-        float fadeTime = 0.5f;
-        float t = 0f;
+        const float fadeTime = 0.5f;
+        float elapsed = 0f;
 
-        while (t < fadeTime)
+        while (elapsed < fadeTime)
         {
-            t += Time.deltaTime;
-            pickupText.alpha = Mathf.Lerp(1f, 0f, t / fadeTime);
+            elapsed += Time.deltaTime;
+            pickupText.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeTime);
             yield return null;
         }
 
