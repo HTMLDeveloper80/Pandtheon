@@ -1041,6 +1041,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSceneName: Level1_OakForest
   targetSpawnId: 
+  approachOffset: 1.5
+  arrivalTolerance: 0.15
+  timeoutPadding: 2
 --- !u!61 &167386734
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3873,7 +3876,7 @@ Transform:
   m_GameObject: {fileID: 796375264}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 3.5, y: 2, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13205,6 +13208,10 @@ PrefabInstance:
       propertyPath: animator
       value: 
       objectReference: {fileID: 1703108375}
+    - target: {fileID: 4865376248981517595, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
+      propertyPath: attackReachY
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4865376248981517595, guid: 5e02c515d6d5b984497b0044333e8bac, type: 3}
       propertyPath: enemyMask.m_Bits
       value: 64

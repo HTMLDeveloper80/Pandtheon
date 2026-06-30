@@ -8,6 +8,7 @@ public class PlayerClickController : MonoBehaviour
     [SerializeField] private PlayerCombat combat;
     [SerializeField] private PlayerStats playerStats;
     [SerializeField] private PlayerWallet playerWallet;
+    [SerializeField] private PlayerMovement movement;
 
     [Header("Layer masks")]
     [SerializeField] private LayerMask npcMask;
@@ -30,6 +31,7 @@ public class PlayerClickController : MonoBehaviour
         if (combat == null) combat = GetComponent<PlayerCombat>();
         if (playerStats == null) playerStats = GetComponent<PlayerStats>();
         if (playerWallet == null) playerWallet = GetComponent<PlayerWallet>();
+        if (movement == null) movement = GetComponent<PlayerMovement>();
     }
 
     private void Update()
@@ -37,31 +39,23 @@ public class PlayerClickController : MonoBehaviour
         if (navigator != null && navigator.IsBusy) return;
 
         if (!Input.GetMouseButtonDown(0)) return;
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject()) return;
 
         if (cachedCamera == null) cachedCamera = Camera.main;
         if (cachedCamera == null) return;
 
-        Vector3 world3 = cachedCamera.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 world3 =
+            cachedCamera.ScreenToWorldPoint(Input.mousePosition);
         world3.z = 0f;
         Vector2 world = world3;
 
-        // 1) NPC
         if (TryNpc(world)) return;
-
-        // 2) LADDER (priorytet nad platform¹)
         if (TryLadder(world)) return;
-
-        // 2.5) MAP TRANSITION SIGN
         if (TryMapTransition(world)) return;
-
-        // 3) ENEMY
         if (TryEnemy(world)) return;
-
-        // 4) PICKUP
         if (TryPickup(world)) return;
 
-        // 5) PLATFORM MOVE
         TryPlatformMove(world);
     }
 
@@ -70,7 +64,10 @@ public class PlayerClickController : MonoBehaviour
         Collider2D hit = FindClickable(world, npcMask);
         if (hit == null) return false;
 
-        var npc = hit.GetComponentInParent<NpcQuestGiver>() ?? hit.GetComponent<NpcQuestGiver>();
+        NpcQuestGiver npc =
+            hit.GetComponentInParent<NpcQuestGiver>() ??
+            hit.GetComponent<NpcQuestGiver>();
+
         if (npc == null) return false;
 
         if (combat != null) combat.CancelCombat();
@@ -140,7 +137,8 @@ public class PlayerClickController : MonoBehaviour
 
         if (targetPlatform == null) return;
 
-        float clickedX = Mathf.Clamp(world.x, hit.bounds.min.x, hit.bounds.max.x);
+        float clickedX =
+            Mathf.Clamp(world.x, hit.bounds.min.x, hit.bounds.max.x);
 
         if (combat != null) combat.CancelCombat();
         navigator.NavigateToPlatform(targetPlatform, clickedX);
@@ -157,10 +155,10 @@ public class PlayerClickController : MonoBehaviour
             hit.GetComponentInChildren<MapTransitionSign>();
 
         if (sign == null) return false;
-        if (!sign.CanEnter()) return true; // klik zu¿yty, ale warunki nieprzejœcia
+        if (!sign.CanEnter()) return true;
 
         if (combat != null) combat.CancelCombat();
-        sign.Interact();
+        sign.Interact(movement);
         return true;
     }
 
@@ -170,7 +168,8 @@ public class PlayerClickController : MonoBehaviour
         {
             Collider2D maskedHit = Physics2D.OverlapPoint(world, mask);
             if (maskedHit == null)
-                maskedHit = Physics2D.OverlapCircle(world, clickRadius, mask);
+                maskedHit =
+                    Physics2D.OverlapCircle(world, clickRadius, mask);
 
             if (maskedHit != null)
                 return maskedHit;
